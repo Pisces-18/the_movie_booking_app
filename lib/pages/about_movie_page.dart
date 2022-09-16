@@ -1,61 +1,107 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:the_movie_booking_app/data/models/data_model.dart';
+import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
+import 'package:the_movie_booking_app/data/vos/actor_vo.dart';
+import 'package:the_movie_booking_app/data/vos/base_actor_vo.dart';
+import 'package:the_movie_booking_app/network/api_constants.dart';
 import 'package:the_movie_booking_app/pages/choose_time_and_cinema_page.dart';
 import 'package:the_movie_booking_app/resources/dimens.dart';
+import '../data/vos/credit_vo.dart';
+import '../data/vos/movie_vo.dart';
 import '../resources/colors.dart';
 import '../resources/germs.dart';
 import '../resources/strings.dart';
 import '../widgets/censor_date_duration_view.dart';
 
-class AboutMoviePage extends StatelessWidget {
-
-
-  final List<Map<String, dynamic>> gridData;
-  final int gridDataIndex;
+class AboutMoviePage extends StatefulWidget {
+  final int movieId;
   final bool isNotificationAndBookingVisibility;
+  final String location;
 
-  AboutMoviePage(this.isNotificationAndBookingVisibility, this.gridData,
-      this.gridDataIndex);
+  AboutMoviePage(
+      this.isNotificationAndBookingVisibility, this.movieId, this.location);
+
   @override
+  State<AboutMoviePage> createState() => _AboutMoviePageState();
+}
+
+class _AboutMoviePageState extends State<AboutMoviePage> {
+
+  DataModel mMovieModel = DataModelImpl();
+
+  MovieVO? mMovie;
+  List<ActorVO>? actorList;
+
+  @override
+  void initState() {
+    super.initState();
+
+    ///Get Movie Details
+    mMovieModel.getMovieDetails(widget.movieId)?.then((movie) {
+      setState(() {
+        mMovie = movie;
+      });
+    }).catchError((error) {
+      debugPrint(error.toString());
+    });
+
+    ///Get Actor
+    mMovieModel.getCreditsByMovie(widget.movieId)?.then((creditList) {
+      setState(() {
+        actorList = creditList;
+      });
+    }).catchError((error) {
+      debugPrint(error.toString());
+    });
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: MARGIN_LARGE),
-        color: PAGE_BACKGROUND_COLOR,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              MovieInfoView(
-                movieTypeList: movieTypeList,
-                gridDataIndex: gridDataIndex,
-                gridData: gridData,
+        child: (mMovie != null)
+            ? SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    MovieInfoView(
+                      mMovie: mMovie,
+                    ),
+                    const SizedBox(height: MARGIN_MEDIUM_2),
+                    CensorDateDurationSectionView(mMovie),
+                    ReleaseDateNotificationView(
+                        widget.isNotificationAndBookingVisibility),
+                    const SizedBox(height: MARGIN_xXLARGE),
+                    StoryLineSectionView(mMovie?.overview ?? ""),
+                    const SizedBox(height: MARGIN_xXLARGE),
+                    CastSectionView(actorList: actorList)
+                  ],
+                ),
+              )
+            : const Center(
+                child: CircularProgressIndicator(),
               ),
-              const SizedBox(height: MARGIN_MEDIUM_2),
-              CensorDateDurationSectionView(gridData, gridDataIndex),
-              ReleaseDateNotificationView(isNotificationAndBookingVisibility),
-              const SizedBox(height: MARGIN_xXLARGE),
-              StoryLineSectionView(),
-              const SizedBox(height: MARGIN_xXLARGE),
-              CastSectionView(castData: castData)
-            ],
-          ),
-        ),
       ),
       floatingActionButton: Visibility(
-        visible: !isNotificationAndBookingVisibility,
+        visible: !widget.isNotificationAndBookingVisibility,
         child: BookingButtonView(
-          () => _navigateToChooseTimeAndCinemaPage(context),
+          () => _navigateToChooseTimeAndCinemaPage(context, widget.location,widget.movieId),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Future<dynamic> _navigateToChooseTimeAndCinemaPage(BuildContext context) {
+  Future<dynamic> _navigateToChooseTimeAndCinemaPage(
+      BuildContext context, location,movieId) {
     return Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChooseTimeAndCinemaPage(),
+        builder: (context) => ChooseTimeAndCinemaPage(location,movieId),
       ),
     );
   }
@@ -68,8 +114,9 @@ class BookingButtonView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        onTap: () => onTapBooking(),
-        child: Image.asset("assets/images/bookingButton.png"),);
+      onTap: () => onTapBooking(),
+      child: Image.asset("assets/images/bookingButton.png"),
+    );
   }
 }
 
@@ -133,8 +180,6 @@ class ReleaseDateNotificationView extends StatelessWidget {
 }
 
 class ReleaseSectionImageView extends StatelessWidget {
-
-
   @override
   Widget build(BuildContext context) {
     return Image.asset("assets/images/notiImage.png");
@@ -142,8 +187,6 @@ class ReleaseSectionImageView extends StatelessWidget {
 }
 
 class SendNotificationButtonView extends StatelessWidget {
-
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -173,8 +216,6 @@ class SendNotificationButtonView extends StatelessWidget {
 }
 
 class ReleaseSectionNotificationTextView extends StatelessWidget {
-
-
   @override
   Widget build(BuildContext context) {
     return const Text(
@@ -189,8 +230,6 @@ class ReleaseSectionNotificationTextView extends StatelessWidget {
 }
 
 class ReleaseSectionTitleTextView extends StatelessWidget {
-
-
   @override
   Widget build(BuildContext context) {
     return const Text(
@@ -205,15 +244,12 @@ class ReleaseSectionTitleTextView extends StatelessWidget {
 }
 
 class MovieInfoView extends StatefulWidget {
-  const MovieInfoView(
-      {Key? key,
-      required this.movieTypeList,
-      required this.gridData,
-      required this.gridDataIndex})
-      : super(key: key);
-  final List<Map<String, dynamic>> gridData;
-  final int gridDataIndex;
-  final List<String> movieTypeList;
+  MovieInfoView({
+    Key? key,
+    required this.mMovie,
+  }) : super(key: key);
+  MovieVO? mMovie;
+
   @override
   State<MovieInfoView> createState() => _MovieInfoViewState();
 }
@@ -226,6 +262,7 @@ class _MovieInfoViewState extends State<MovieInfoView> {
       child: Stack(
         children: [
           Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
@@ -234,7 +271,7 @@ class _MovieInfoViewState extends State<MovieInfoView> {
                   children: [
                     Positioned.fill(
                       child: MoviePlayImageView(
-                          "${widget.gridData.elementAt(widget.gridDataIndex)['videoImage']}"),
+                          "$IMAGE_BASE_URL${widget.mMovie?.backDropPath}"),
                     ),
                     const Align(
                       alignment: Alignment.topLeft,
@@ -253,16 +290,17 @@ class _MovieInfoViewState extends State<MovieInfoView> {
               ),
               const SizedBox(height: MARGIN_MEDIUM_2),
               MovieGenreInfoView(
-                movieTypeList: widget.movieTypeList,
-                gridData: widget.gridData,
-                gridDataIndex: widget.gridDataIndex,
+                mMovie: widget.mMovie,
+                movieTypeList: widget.mMovie?.genres
+                    ?.map((genre) => genre.name ?? "")
+                    .toList(),
               ),
             ],
           ),
           Align(
             alignment: Alignment.bottomLeft,
-            child: MovieImageView(
-                "${widget.gridData.elementAt(widget.gridDataIndex)['image']}"),
+            child:
+                MovieImageView("$IMAGE_BASE_URL${widget.mMovie?.posterPath}"),
           ),
         ],
       ),
@@ -271,37 +309,44 @@ class _MovieInfoViewState extends State<MovieInfoView> {
 }
 
 class MovieGenreInfoView extends StatelessWidget {
-  const MovieGenreInfoView(
-      {Key? key,
-      required this.movieTypeList,
-      required this.gridData,
-      required this.gridDataIndex})
-      : super(key: key);
-  final List<Map<String, dynamic>> gridData;
-  final int gridDataIndex;
-  final List<String> movieTypeList;
+  MovieGenreInfoView({
+    Key? key,
+    required this.mMovie,
+    required this.movieTypeList,
+  }) : super(key: key);
+  MovieVO? mMovie;
+  final List<String>? movieTypeList;
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(left: 180),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          Wrap(
             children: [
-              MovieGenreInfoTitleView(gridData: gridData, gridDataIndex: gridDataIndex),
+              MovieGenreInfoTitleView(
+                title: mMovie?.title ?? "",
+              ),
               const SizedBox(width: MARGIN_SMALL_LX),
               MovieGenreInfoImageView(),
-              MovieGenreInfoMovieNameView(gridData: gridData, gridDataIndex: gridDataIndex),
+              MovieGenreInfoRatingView(
+                rating: mMovie?.voteAverage.toString() ?? "",
+              ),
             ],
           ),
           const SizedBox(height: MARGIN_MEDIUM_2x),
-          MovieGenreInfoMovieTypeView(gridData: gridData, gridDataIndex: gridDataIndex),
+          MovieGenreInfoMovieTypeView(
+            movieTypeList: "2D ,3D ",
+          ),
           const SizedBox(height: MARGIN_MEDIUM_2X),
           Wrap(
-            children:
-                movieTypeList.map((type) => MovieTypeChipView(type)).toList(),
+            children: movieTypeList
+                    ?.map((type) => MovieTypeChipView(type))
+                    .toList() ??
+                [],
           ),
         ],
       ),
@@ -312,17 +357,15 @@ class MovieGenreInfoView extends StatelessWidget {
 class MovieGenreInfoMovieTypeView extends StatelessWidget {
   const MovieGenreInfoMovieTypeView({
     Key? key,
-    required this.gridData,
-    required this.gridDataIndex,
+    required this.movieTypeList,
   }) : super(key: key);
 
-  final List<Map<String, dynamic>> gridData;
-  final int gridDataIndex;
+  final String movieTypeList;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      "${gridData.elementAt(gridDataIndex)['movieType']}",
+      movieTypeList,
       style: const TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: TEXT_REGULAR,
@@ -331,20 +374,18 @@ class MovieGenreInfoMovieTypeView extends StatelessWidget {
   }
 }
 
-class MovieGenreInfoMovieNameView extends StatelessWidget {
-  const MovieGenreInfoMovieNameView({
+class MovieGenreInfoRatingView extends StatelessWidget {
+  const MovieGenreInfoRatingView({
     Key? key,
-    required this.gridData,
-    required this.gridDataIndex,
+    required this.rating,
   }) : super(key: key);
 
-  final List<Map<String, dynamic>> gridData;
-  final int gridDataIndex;
+  final String rating;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      "${gridData.elementAt(gridDataIndex)['rating']}",
+      rating,
       style: const TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: TEXT_REGULAR_2X,
@@ -355,7 +396,6 @@ class MovieGenreInfoMovieNameView extends StatelessWidget {
 }
 
 class MovieGenreInfoImageView extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return Image.asset("assets/images/imdb.png");
@@ -365,25 +405,18 @@ class MovieGenreInfoImageView extends StatelessWidget {
 class MovieGenreInfoTitleView extends StatelessWidget {
   const MovieGenreInfoTitleView({
     Key? key,
-    required this.gridData,
-    required this.gridDataIndex,
+    required this.title,
   }) : super(key: key);
-
-  final List<Map<String, dynamic>> gridData;
-  final int gridDataIndex;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: Text(
-        "${gridData.elementAt(gridDataIndex)['title']}",
-        softWrap: false,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: TEXT_REGULAR_2X,
-            color: Colors.white),
-      ),
+    return Text(
+      title,
+      style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: TEXT_REGULAR_2X,
+          color: Colors.white),
     );
   }
 }
@@ -395,11 +428,11 @@ class MovieImageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-          left: MARGIN_MEDIUM_2x, bottom: MARGIN_MEDIUM_3),
+      padding:
+          const EdgeInsets.only(left: MARGIN_MEDIUM_2x, bottom: MARGIN_CARD_MEDIUM_2L_X),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(MARGIN_SMALL),
-        child: Image.asset(
+        child: Image.network(
           image,
           fit: BoxFit.cover,
           width: ABOUT_MOVIE_IMAGE_WIDTH,
@@ -465,7 +498,7 @@ class MoviePlayImageView extends StatelessWidget {
   MoviePlayImageView(this.playImage);
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
+    return Image.network(
       playImage,
       fit: BoxFit.cover,
     );
@@ -505,10 +538,10 @@ class MovieTypeChipView extends StatelessWidget {
 class CastSectionView extends StatelessWidget {
   const CastSectionView({
     Key? key,
-    required this.castData,
+    required this.actorList,
   }) : super(key: key);
 
-  final List<Map<String, dynamic>> castData;
+  final List<ActorVO>? actorList;
 
   @override
   Widget build(BuildContext context) {
@@ -535,7 +568,7 @@ class CastSectionView extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemCount: 7,
               itemBuilder: (BuildContext context, int index) {
-                return CasterView(castData: castData, index: index,);
+                return CasterView(actor: actorList?[index]);
               }),
         )
       ],
@@ -546,11 +579,10 @@ class CastSectionView extends StatelessWidget {
 class CasterView extends StatelessWidget {
   const CasterView({
     Key? key,
-    required this.castData, required this.index,
+    required this.actor,
   }) : super(key: key);
 
-  final List<Map<String, dynamic>> castData;
-  final int index;
+  final ActorVO? actor;
 
   @override
   Widget build(BuildContext context) {
@@ -560,13 +592,17 @@ class CasterView extends StatelessWidget {
       child: Column(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(100),
-            child: CasterImageView(castData: castData, index: index),
+            borderRadius: BorderRadius.circular(MARGIN_XXXLARGE),
+            child: CasterImageView(
+              image: "$IMAGE_BASE_URL${actor?.profilePath}",
+            ),
           ),
           const SizedBox(height: MARGIN_MEDIUM),
           Padding(
             padding: const EdgeInsets.only(left: MARGIN_MEDIUM),
-            child: CasterNameView(castData: castData, index: index),
+            child: CasterNameView(
+              name: actor?.name.toString() ?? "",
+            ),
           ),
         ],
       ),
@@ -577,17 +613,15 @@ class CasterView extends StatelessWidget {
 class CasterNameView extends StatelessWidget {
   const CasterNameView({
     Key? key,
-    required this.castData,
-    required this.index,
+    required this.name,
   }) : super(key: key);
 
-  final List<Map<String, dynamic>> castData;
-  final int index;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      "${castData.elementAt(index)['name']}",
+      name,
       style: const TextStyle(
           fontWeight: FontWeight.w500,
           fontSize: TEXT_SMALL,
@@ -599,17 +633,19 @@ class CasterNameView extends StatelessWidget {
 class CasterImageView extends StatelessWidget {
   const CasterImageView({
     Key? key,
-    required this.castData,
-    required this.index,
+    required this.image,
   }) : super(key: key);
 
-  final List<Map<String, dynamic>> castData;
-  final int index;
+  final String image;
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-        "${castData.elementAt(index)['image']}");
+    return Image.network(
+      image,
+      fit: BoxFit.cover,
+      width: MARGIN_XXXLARGE,
+      height: MARGIN_XXXLARGE,
+    );
   }
 }
 
@@ -631,6 +667,8 @@ class CastSectionTitleView extends StatelessWidget {
 }
 
 class StoryLineSectionView extends StatelessWidget {
+  final String overview;
+  StoryLineSectionView(this.overview);
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -640,7 +678,7 @@ class StoryLineSectionView extends StatelessWidget {
         children: [
           StoryLineSectionTitleView(),
           const SizedBox(height: MARGIN_MEDIUM_X),
-          StoryLineSectionTextView()
+          StoryLineSectionTextView(overview)
         ],
       ),
     );
@@ -648,12 +686,12 @@ class StoryLineSectionView extends StatelessWidget {
 }
 
 class StoryLineSectionTextView extends StatelessWidget {
-
-
+  final String overview;
+  StoryLineSectionTextView(this.overview);
   @override
   Widget build(BuildContext context) {
     return Text(
-      "In the 1970s, young Gru tries to join a group of supervillains called the Vicious 6 after they oust their leader -- the legendary fighter Wild Knuckles. When the interview turns disastrous, Gru and his Minions go on the run with the Vicious 6 hot on their tails. Luckily, he finds an unlikely source for guidance -- Wild Knuckles himself -- and soon discovers that even bad guys need a little help from their friends.",
+      overview,
       style: GoogleFonts.dmSans(
           textStyle: Theme.of(context).textTheme.headlineSmall,
           fontWeight: FontWeight.w500,
@@ -664,8 +702,6 @@ class StoryLineSectionTextView extends StatelessWidget {
 }
 
 class StoryLineSectionTitleView extends StatelessWidget {
-
-
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -680,20 +716,29 @@ class StoryLineSectionTitleView extends StatelessWidget {
 }
 
 class CensorDateDurationSectionView extends StatelessWidget {
-  final List<Map<String, dynamic>> gridData;
-  final int gridDataIndex;
-  CensorDateDurationSectionView(this.gridData, this.gridDataIndex);
+  MovieVO? mMovie;
+
+  CensorDateDurationSectionView(this.mMovie);
   @override
   Widget build(BuildContext context) {
+    String month =
+        DateFormat.MMM().format(DateTime.parse(mMovie?.releaseDate ?? ""));
+    String day =
+        DateFormat.d().format(DateTime.parse(mMovie?.releaseDate ?? ""));
+    String year =
+        DateFormat.y().format(DateTime.parse(mMovie?.releaseDate ?? ""));
+    int time = mMovie?.runtime ?? 0;
+    int hour = time ~/ 60;
+    int minute = (time - hour * 60);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2x),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CensorDateDurationView(CENSOR_RATING_TEXT,
-              "${gridData.elementAt(gridDataIndex)['countryType']}"),
-          CensorDateDurationView(RELEASE_DATE_TEXT, "May 8th, 2022"),
-          CensorDateDurationView(DURATION_TEXT, "2hr 15min"),
+              mMovie?.productionCountries?.first.iso31661 ?? ""),
+          CensorDateDurationView(RELEASE_DATE_TEXT, "$month ${day}th, $year"),
+          CensorDateDurationView(DURATION_TEXT, "${hour}hr ${minute}min"),
         ],
       ),
     );

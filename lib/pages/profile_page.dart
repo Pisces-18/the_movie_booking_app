@@ -7,17 +7,17 @@ import '../resources/strings.dart';
 import '../widgets/bottom_navigation_bar_view.dart';
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  //const ProfilePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       body: Container(
         height: MediaQuery.of(context).size.height/1,
         padding: const EdgeInsets.only(
           top: MARGIN_xXLARGE,
         ),
-        color: PAGE_BACKGROUND_COLOR,
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -32,7 +32,7 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBarView(3),
+      // bottomNavigationBar: BottomNavigationBarView(3),
     );
   }
 

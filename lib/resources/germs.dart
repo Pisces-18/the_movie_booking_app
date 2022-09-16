@@ -96,12 +96,6 @@ final List<Map<String, dynamic>> castData = [
   {"name": "Jayson as Tatun", "image": "assets/images/jayson.jpg"},
 ];
 
-final List<String> movieTypeList = [
-  "Action",
-  "Adventure",
-  "Drama",
-  "Animation"
-];
 
 //Search Movie Page Data
 
@@ -204,62 +198,98 @@ final List<Map<String, dynamic>> foodList = [
 final List<Map<String, dynamic>> dateData = [//dart Class
   {
     "dayText": "Today",
-    "month": "May",
-    "dayNumber": "8",
-    "backgroundColor": PRIMARY_COLOR_1,
-    "isSelected": true
+    "month": "Sep",
+    "dayNumber": "11",
+    "year": 2022,
   },
   {
     "dayText": "Tomorrow",
-    "month": "May",
-    "dayNumber": "9",
-    "backgroundColor": DATE_VIEW_BACKGROUND_COLOR,
-    "isSelected": false
+    "month": "Sep",
+    "dayNumber": "12",
+    "year": 2022,
+  },
+  {
+    "dayText": "Mon",
+    "month": "Sep",
+    "dayNumber": "13",
+    "year": 2022,
   },
   {
     "dayText": "TUE",
-    "month": "May",
-    "dayNumber": "10",
-    "backgroundColor": DATE_VIEW_BACKGROUND_COLOR,
-    "isSelected": false
+    "month": "Sep",
+    "dayNumber": "14",
+    "year": 2022,
   },
   {
     "dayText": "WED",
-    "month": "May",
-    "dayNumber": "11",
-    "backgroundColor": DATE_VIEW_BACKGROUND_COLOR,
-    "isSelected": false
+    "month": "Sep",
+    "dayNumber": "15",
+    "year": 2022,
   },
   {
     "dayText": "THU",
-    "month": "May",
-    "dayNumber": "12",
-    "backgroundColor": DATE_VIEW_BACKGROUND_COLOR,
-    "isSelected": false
+    "month": "Sep",
+    "dayNumber": "16",
+    "year": 2022,
   },
   {
     "dayText": "FRI",
-    "month": "May",
-    "dayNumber": "13",
-    "backgroundColor": DATE_VIEW_BACKGROUND_COLOR,
-    "isSelected": false
+    "month": "Sep",
+    "dayNumber": "17",
+    "year": 2022,
   },
   {
     "dayText": "SAT",
-    "month": "May",
-    "dayNumber": "14",
-    "backgroundColor": DATE_VIEW_BACKGROUND_COLOR,
-    "isSelected": false
-  }
+    "month": "Sep",
+    "dayNumber": "18",
+    "year": 2022,
+  },
+  {
+    "dayText": "SUN",
+    "month": "Sep",
+    "dayNumber": "19",
+    "year": 2022,
+  },
+  {
+    "dayText": "MON",
+    "month": "Sep",
+    "dayNumber": "20",
+    "year": 2022,
+  },
+  {
+    "dayText": "TUE",
+    "month": "Sep",
+    "dayNumber": "21",
+    "year": 2022,
+  },
+  {
+    "dayText": "WED",
+    "month": "Sep",
+    "dayNumber": "22",
+    "year": 2022,
+  },
+  {
+    "dayText": "THU",
+    "month": "Sep",
+    "dayNumber": "23",
+    "year": 2022,
+  },
+  {
+    "dayText": "FRI",
+    "month": "Sep",
+    "dayNumber": "24",
+    "year": 2022,
+  },
+
 ];
 
-final List<String> cinemaList = [
-  "JCGV : Junction City",
-  "JCGV : City Mall",
-  "Mingalar Cinema Gold Class",
-  "JCGV : City Mall",
-  "JCGV : Junction City",
-];
+// final List<String> cinemaList = [
+//   "JCGV : Junction City",
+//   "JCGV : City Mall",
+//   "Mingalar Cinema Gold Class",
+//   "JCGV : City Mall",
+//   "JCGV : Junction City",
+// ];
 
 final List<Map<String,dynamic>> timeAndAvailableSeatData=[
   {
@@ -428,10 +458,10 @@ final List<Map<String, dynamic>> foodAllList = [
     "price": "2000KS",
   },
 ];
-final List<Map<String, dynamic>> selectedFoodList = [
-  {"name": "Large Cola", "qty": 1, "price": 1000},
-  {"name": "Potatoes Chips", "qty": 1, "price": 1000}
-];
+// final List<Map<String, dynamic>> selectedFoodList = [
+//   {"name": "Large Cola", "qty": 1, "price": 1000},
+//   {"name": "Potatoes Chips", "qty": 1, "price": 1000}
+// ];
 
 //Payment Page Data
 

@@ -1,12 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/pages/home_page.dart';
 import 'package:the_movie_booking_app/pages/ticket_confirmation_page.dart';
+import '../data/vos/cinema_vo.dart';
 import '../resources/dimens.dart';
 import '../resources/strings.dart';
 
 class TicketConfirmationSplashScreenPage extends StatefulWidget {
-  const TicketConfirmationSplashScreenPage({Key? key}) : super(key: key);
+  //const TicketConfirmationSplashScreenPage({Key? key, required this.location, required this.movieId, required this.cinema, required this.cinemaDayTimeSlotId, required this.startTime, required this.date, required this.seatNo, required this.snackList}) : super(key: key);
 
+  final String location;
+  TicketConfirmationSplashScreenPage(this.location);
+  // final int movieId;
+  // final CinemaVO? cinema;
+  // final int cinemaDayTimeSlotId;
+  // final String startTime;
+  // final String date;
+  // final String seatNo;
+  // final List<Map<String,dynamic>> snackList;
   @override
   State<TicketConfirmationSplashScreenPage> createState() =>
       _TicketConfirmationSplashScreenPageState();
@@ -21,7 +32,7 @@ class _TicketConfirmationSplashScreenPageState
       () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => TicketConfirmationPage(),
+          builder: (context) => TicketConfirmationPage(widget.location),
         ),
       ),
     );

@@ -1,15 +1,18 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/germs.dart';
 
 class DateView extends StatefulWidget {
   final List<Map<String, dynamic>> dateData;
+  final Function(String?) onTapDate;
   // // final Object DateOB;
   //late final int index;
   //  //final Function(int) searchIndex;
   DateView(
-    this.dateData,
+    this.dateData,this.onTapDate
   );
 
   @override
@@ -17,7 +20,7 @@ class DateView extends StatefulWidget {
 }
 
 class _DateViewState extends State<DateView> {
-  String isSelectedItem = dateData.elementAt(0)['dayNumber'];
+  String isSelectedItem = DateFormat('d').format(DateTime.now());
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +30,14 @@ class _DateViewState extends State<DateView> {
       height: DATE_VIEW_SECTION_HEIGHT,
       child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          itemCount: 7,
+          itemCount: dateData.length,
           itemBuilder: (BuildContext context, int index) {
             return GestureDetector(
               onTap: () => {
                 setState(() {
                   isSelectedItem =
                       widget.dateData.elementAt(index)['dayNumber'];
+                  widget.onTapDate("${widget.dateData.elementAt(index)['month']} ${widget.dateData.elementAt(index)['year']} ${widget.dateData.elementAt(index)['dayNumber']}");
                 }),
               },
               child: Stack(

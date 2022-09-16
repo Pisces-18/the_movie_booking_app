@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:the_movie_booking_app/pages/movie_page.dart';
 import 'package:the_movie_booking_app/pages/home_page.dart';
 import 'package:the_movie_booking_app/resources/colors.dart';
 import 'package:the_movie_booking_app/resources/dimens.dart';
@@ -8,7 +9,6 @@ import '../resources/strings.dart';
 
 
 class LocationPage extends StatefulWidget {
-  late String location;
 
   @override
   State<LocationPage> createState() => _LocationPageState();
@@ -20,6 +20,7 @@ class _LocationPageState extends State<LocationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
@@ -43,7 +44,6 @@ class _LocationPageState extends State<LocationPage> {
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
-        color: PAGE_BACKGROUND_COLOR,
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -53,12 +53,7 @@ class _LocationPageState extends State<LocationPage> {
               ),
               LocationCitySectionView(
                 cityList,
-                (searchLocation) {
-                  setState(() {
-                    widget.location = searchLocation;
-                  });
-                },
-                () => _navigateToHomePage(context),
+                (location) => _navigateToHomePage(context,location),
               ),
             ],
           ),
@@ -67,11 +62,11 @@ class _LocationPageState extends State<LocationPage> {
     );
   }
 
-  Future<dynamic> _navigateToHomePage(BuildContext context) {
+  Future<dynamic> _navigateToHomePage(BuildContext context, String location) {
     return Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => HomePage(widget.location),
+        builder: (context) => HomePage(location,),
       ),
     );
   }
@@ -79,10 +74,10 @@ class _LocationPageState extends State<LocationPage> {
 
 class LocationCitySectionView extends StatefulWidget {
   final List<String> cityList;
-  final Function onTapLocation;
-  final Function(String) searchLocation;
+  final Function(String) onTapLocation;
+  // final Function(String) searchLocation;
   LocationCitySectionView(
-      this.cityList, this.searchLocation, this.onTapLocation);
+      this.cityList,  this.onTapLocation);
 
   @override
   State<LocationCitySectionView> createState() =>
@@ -108,8 +103,8 @@ class _LocationCitySectionViewState extends State<LocationCitySectionView> {
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    widget.onTapLocation();
-                    widget.searchLocation(widget.cityList.elementAt(index));
+                    widget.onTapLocation(widget.cityList.elementAt(index));
+                    //widget.searchLocation(widget.cityList.elementAt(index));
                   });
                 },
                 child: Container(

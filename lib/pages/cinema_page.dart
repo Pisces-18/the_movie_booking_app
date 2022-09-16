@@ -12,44 +12,55 @@ import '../viewers/cinema_expansion_view.dart';
 import '../widgets/bottom_navigation_bar_view.dart';
 
 class CinemaPage extends StatelessWidget {
-  const CinemaPage({Key? key}) : super(key: key);
-
+  final String location;
+  CinemaPage(this.location);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,
         backgroundColor: APPBAR_COLOR,
-
         actions: [
           Padding(
             padding: const EdgeInsets.only(
               right: MARGIN_MEDIUM_3LX,
             ),
             child: GestureDetector(
-              onTap: ()=>Navigator.push(context, MaterialPageRoute(builder: (context)=>SearchCinemaPage())),
-                child: Icon(
-              Icons.search,
-            )),
+                onTap: () => _navigateToSearchCinemaPage(context,location),
+                child: const Icon(
+                  Icons.search,
+                )),
           ),
         ],
       ),
-      body: Container(
-        color: PAGE_BACKGROUND_COLOR,
-        child: ListView.builder(
-          itemCount: cinemaList.length,
-            itemBuilder: (BuildContext context,int index){
-          return CinemaListView(cinemaList[index], ()=>_navigateToCinemaInfoPage(context));
-        }),
-      ),
-      bottomNavigationBar: BottomNavigationBarView(1),
+      // body: Container(
+      //   child: ListView.builder(
+      //       itemCount: cinemaList.length,
+      //       itemBuilder: (BuildContext context, int index) {
+      //         return CinemaListView(cinemaList[index],
+      //             (location) => _navigateToCinemaInfoPage(context, location));
+      //       }),
+      // ),
+      //
     );
   }
 
-  Future<dynamic> _navigateToCinemaInfoPage(BuildContext context) => Navigator.push(context, MaterialPageRoute(builder: (context)=>CinemaInfoPage()));
+  Future<dynamic> _navigateToSearchCinemaPage(BuildContext context, location) {
+    return Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context,) =>
+                          SearchCinemaPage(location)));
+  }
 
- // Future<dynamic> _navigateToChooseSeatPage(BuildContext context) => Navigator.push(context, MaterialPageRoute(builder: (context)=>ChooseSeatPage()));
+  Future<dynamic> _navigateToCinemaInfoPage(
+          BuildContext context, String location,String cinemaName) =>
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => CinemaInfoPage(location,cinemaName)));
+
+  // Future<dynamic> _navigateToChooseSeatPage(BuildContext context) => Navigator.push(context, MaterialPageRoute(builder: (context)=>ChooseSeatPage()));
 
 //  Future<dynamic> _navigateToCinemaInfoPage(BuildContext context) => Navigator.push(context, MaterialPageRoute(builder: (context)=>CinemaInfoPage()));
 }

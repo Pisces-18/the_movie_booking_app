@@ -5,8 +5,8 @@ import '../resources/dimens.dart';
 
 class TicketDividerView extends StatefulWidget {
 
-  double dividerWidth;
-  TicketDividerView(this.dividerWidth);
+  // double dividerWidth;
+  // TicketDividerView(this.dividerWidth);
 
   @override
   State<TicketDividerView> createState() => _TicketDividerViewState();
@@ -39,7 +39,7 @@ class _TicketDividerViewState extends State<TicketDividerView> {
           dashColor: APPBAR_COLOR,
           direction: Axis.horizontal,
           lineThickness: 2.0,
-          lineLength: widget.dividerWidth-36,
+          lineLength: DIVIDER_WIDTH,
         ),
         Container(
           height: MARGIN_XxLARGE,

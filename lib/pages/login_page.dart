@@ -14,10 +14,10 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       body: Container(
         height: MediaQuery.of(context).size.height,
           padding:  EdgeInsets.only(top: MediaQuery.of(context).size.height/12),
-        color: PAGE_BACKGROUND_COLOR,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

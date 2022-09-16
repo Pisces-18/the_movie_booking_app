@@ -12,6 +12,7 @@ class GetOTPPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -28,7 +29,6 @@ class GetOTPPage extends StatelessWidget {
       body: Container(
         height: MediaQuery.of(context).size.height,
         padding: const EdgeInsets.symmetric(horizontal: MARGIN_XLARGE),
-        color: PAGE_BACKGROUND_COLOR,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

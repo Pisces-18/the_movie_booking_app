@@ -1,16 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/models/data_model.dart';
+import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
 import 'package:the_movie_booking_app/pages/ticket_confirmation_splash_screen_page.dart';
+import '../data/vos/checkout_snack_vo.dart';
+import '../data/vos/cinema_vo.dart';
+import '../data/vos/payment_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
-import '../resources/germs.dart';
 import '../resources/strings.dart';
 import '../viewers/payment_type_view.dart';
 
-class PaymentPage extends StatelessWidget {
+class PaymentPage extends StatefulWidget {
+  final String location;
+  final int movieId;
+  final CinemaVO? cinema;
+  final int cinemaDayTimeSlotId;
+  final String startTime;
+  final String date;
+  final String seatNo;
+  final List<Map<String,dynamic>> snackList;
+  final int totalAmount;
+  PaymentPage(this.location,this.movieId,this.cinema,this.cinemaDayTimeSlotId,this.startTime,this.date, this.seatNo,this.snackList,this.totalAmount);
 
   @override
+  State<PaymentPage> createState() => _PaymentPageState();
+}
+
+class _PaymentPageState extends State<PaymentPage> {
+  DataModel dDataModel=DataModelImpl();
+
+  List<PaymentVO>? paymentList;
+  List<CheckOutSnackVO>? snackVO;
+  @override
+
+  void initState(){
+    super.initState();
+
+    for(int i=0;i<widget.snackList.length;i++){
+      snackVO?[i].id=widget.snackList.elementAt(i)['id'];
+      snackVO?[i].quantity=widget.snackList.elementAt(i)['qty'];
+    }
+
+    ///Get Payment List
+    dDataModel.getPaymentMethodList()?.then((payment) {
+      setState((){
+        paymentList=payment;
+        debugPrint(paymentList?[0].name.toString());
+      });
+    }).catchError((error){
+      debugPrint(error.toString());
+    });
+    debugPrint(widget.totalAmount.toString());
+  }
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -37,7 +81,6 @@ class PaymentPage extends StatelessWidget {
       ),
       body: Container(
         height: MediaQuery.of(context).size.height / 1,
-        color: PAGE_BACKGROUND_COLOR,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,9 +96,13 @@ class PaymentPage extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
                 child: PaymentSectionView(
-                  paymentList: paymentList,
-                  onTapPayment: () =>
-                      _navigateToTicketConfirmationSplashScreenPage(context),
+                  paymentList: paymentList ?? [],
+                  onTapPayment: (location) =>
+                  {
+                    _navigateToTicketConfirmationSplashScreenPage(
+                        context, location),
+                    dDataModel.postCheckout(widget.cinemaDayTimeSlotId, "G", widget.seatNo, widget.date, widget.totalAmount, widget.movieId, widget.cinema?.cinemaId?? 0, snackVO?? []),
+                  },location: widget.location,
                 ),
               ),
             ],
@@ -65,11 +112,11 @@ class PaymentPage extends StatelessWidget {
     );
   }
 
-  Future<dynamic> _navigateToTicketConfirmationSplashScreenPage(BuildContext context) =>
+  Future<dynamic> _navigateToTicketConfirmationSplashScreenPage(BuildContext context, location) =>
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => TicketConfirmationSplashScreenPage(),
+          builder: (context) => TicketConfirmationSplashScreenPage(location,),
         ),
       );
 }
@@ -78,11 +125,12 @@ class PaymentSectionView extends StatelessWidget {
   const PaymentSectionView({
     Key? key,
     required this.paymentList,
-    required this.onTapPayment,
+    required this.onTapPayment, required this.location,
   }) : super(key: key);
 
-  final List<Map<String, dynamic>> paymentList;
-  final Function onTapPayment;
+  final List<PaymentVO>? paymentList;
+  final Function(String) onTapPayment;
+  final String location;
 
   @override
   Widget build(BuildContext context) {
@@ -95,10 +143,10 @@ class PaymentSectionView extends StatelessWidget {
           height: PAYMENT_TYPE_VIEW_HEIGHT,
           child: ListView.builder(
               physics: NeverScrollableScrollPhysics(),
-              itemCount: paymentList.length,
+              itemCount: paymentList?.length,
               itemBuilder: (BuildContext context, int index) {
                 return PaymentTypeView(
-                    paymentList, index, () => onTapPayment());
+                    paymentList?[index], () => onTapPayment(location));
               }),
         )
       ],

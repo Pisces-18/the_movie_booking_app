@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:measure_size/measure_size.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
@@ -6,10 +7,14 @@ import '../widgets/ticket_date_time_location_icon_and_text_view.dart';
 import 'ticket_divider_view.dart';
 
 class TicketInfoView extends StatefulWidget {
-  final List<Map<String, dynamic>> ticketData;
-  final int index;
+  final String image;
+  final String movieName;
+  final String cinemaName;
+  final String seatNo;
+  final String date;
+  final String time;
   final Function onTapTicket;
-  TicketInfoView(this.ticketData, this.index, this.onTapTicket);
+  TicketInfoView(this.onTapTicket, this.image, this.movieName, this.cinemaName,this.seatNo, this.date, this.time);
 
   @override
   State<TicketInfoView> createState() => _TicketInfoViewState();
@@ -44,29 +49,22 @@ class _TicketInfoViewState extends State<TicketInfoView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               //mainAxisSize: MainAxisSize.min,
               children: [
-                MeasureSize(
-                  onChange: (newSize){
-                    setState((){
-                      _size=newSize;
-                    });
-                  },
-                  child: Padding(
-                        padding: const EdgeInsets.only(bottom: MARGIN_MEDIUM_3),
-                        child: MovieAndCinemaInfoView(
-                            image:
-                                "${widget.ticketData.elementAt(widget.index)['image']}",
-                            movieName:
-                                "${widget.ticketData.elementAt(widget.index)['movieName']}",
-                            cinemaName:
-                                "${widget.ticketData.elementAt(widget.index)['cinemaName']}",
-                            numberOfTicket:
-                                "${widget.ticketData.elementAt(widget.index)['noOfTicket']}",
-                            ticketNumber:
-                                "${widget.ticketData.elementAt(widget.index)['ticketNumber']}",
-                            screenNumber:
-                                "${widget.ticketData.elementAt(widget.index)['screenNumber']}"),
-                      ),
-                ),
+                Padding(
+                      padding: const EdgeInsets.only(bottom: MARGIN_MEDIUM_3),
+                      child: MovieAndCinemaInfoView(
+                          image:
+                              widget.image,
+                          movieName:
+                              widget.movieName,
+                          cinemaName:
+                              widget.cinemaName,
+                          numberOfTicket:
+                              "1",
+                          ticketNumber:
+                              widget.seatNo,
+                          screenNumber:
+                              "Screen 2"),
+                    ),
                 //Text(_size?.toString()?? "",style: TextStyle(color: Colors.white),),
                 Padding(
                   padding: const EdgeInsets.only(
@@ -76,19 +74,20 @@ class _TicketInfoViewState extends State<TicketInfoView> {
                       bottom: MARGIN_XxLARGE),
                   child: DateTimeLocationInfoView(
                     date:
-                        "${widget.ticketData.elementAt(widget.index)['date']}",
+                        widget.date,
                     time:
-                        "${widget.ticketData.elementAt(widget.index)['time']}",
+                        widget.time,
                     location:
-                        "${widget.ticketData.elementAt(widget.index)['location']}",
+                        "Q5H3+JPP, Corner of, Bogyoke Lann, Yangon",
                   ),
                 )
               ],
             ),
           ),
+
           Positioned(
-              top: _size?.height?? 0,
-              child: TicketDividerView(_size?.width?? 0))
+              top: TICKET_INFO_DIVIDER_HEIGHT,
+              child: TicketDividerView())
         ],
       ),
     );
@@ -112,7 +111,7 @@ class DateTimeLocationInfoView extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TicketDateTimeLocationIconAndTextView("assets/images/date.png", date),
+        TicketDateTimeLocationIconAndTextView("assets/images/date.png", DateFormat('E, d MMM, yyy').format(DateTime.parse(date))),
         const SizedBox(width: MARGIN_xXLARGE),
         TicketDateTimeLocationIconAndTextView("assets/images/date.png", time),
         const SizedBox(width: MARGIN_xXLARGE),
@@ -155,7 +154,7 @@ class MovieAndCinemaInfoView extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(MARGIN_SMALL),
-            child: Image.asset(
+            child: Image.network(
               image,
               height: TICKET_INFO_VIEW_IMAGE_HEIGHT,
             ),
@@ -220,14 +219,14 @@ class MovieAndCinemaInfoView extends StatelessWidget {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: ticketNumber,
+                      text: "Gold-$ticketNumber",
                       style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: TEXT_REGULAR_2X,
                           color: Colors.white),
                     ),
                     TextSpan(
-                      text: screenNumber,
+                      text: "($screenNumber)",
                       style: const TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: TEXT_REGULAR,

@@ -7,9 +7,13 @@ import '../resources/strings.dart';
 import '../widgets/available_service_icon_and_text_view.dart';
 
 class CinemaInfoPage extends StatelessWidget {
+  final String location;
+  final String cinemaName;
+  CinemaInfoPage(this.location, this.cinemaName);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
@@ -44,7 +48,6 @@ class CinemaInfoPage extends StatelessWidget {
       ),
       body: Container(
         height: MediaQuery.of(context).size.height/1,
-        color: PAGE_BACKGROUND_COLOR,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +60,7 @@ class CinemaInfoPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CinemaNameAndLocationView(),
+                    CinemaNameAndLocationView(cinemaName),
                     const SizedBox(height: MARGIN_XXLARGE),
                     FacilitiesSectionView(facilityList),
                     const SizedBox(height: MARGIN_XXLARGE),
@@ -171,14 +174,16 @@ class FacilitiesSectionView extends StatelessWidget {
 }
 
 class CinemaNameAndLocationView extends StatelessWidget {
+  final String cinemaName;
+  CinemaNameAndLocationView(this.cinemaName);
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "JCGV : Junction City",
-          style: TextStyle(
+         Text(
+          cinemaName,
+          style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: TEXT_REGULAR_2X,
             color: Colors.white,

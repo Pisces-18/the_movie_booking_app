@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_movie_booking_app/pages/cancel_booking_page.dart';
-import 'package:the_movie_booking_app/pages/home_page.dart';
+import 'package:the_movie_booking_app/pages/movie_page.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/germs.dart';
@@ -20,17 +20,18 @@ class TicketPage extends StatelessWidget {
             physics: BouncingScrollPhysics(),
             shrinkWrap: true,
             itemBuilder: (BuildContext context, int index) {
-              return TicketInfoView(
-                ticketData,
-                index,
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CancelBookingPage(
-                        "${ticketData.elementAt(index)['movieName']}"),
-                  ),
-                ),
-              );
+              // return TicketInfoView(
+              //   ticketData,
+              //   index,
+              //   () => Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //       builder: (context) => CancelBookingPage(
+              //           "${ticketData.elementAt(index)['movieName']}"),
+              //     ),
+              //   ),
+              // );
+              return Container();
             },
             itemCount: ticketData.length,
             separatorBuilder: (BuildContext context, int index) {
@@ -41,7 +42,7 @@ class TicketPage extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBarView(2),
+
     );
   }
 }

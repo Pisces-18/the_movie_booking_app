@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/vos/payment_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 
 class PaymentTypeView extends StatelessWidget {
   final Function onTapPayment;
-  final List<Map<String, dynamic>> paymentList;
-  final int index;
+  final PaymentVO? payment;
+
   PaymentTypeView(
-    this.paymentList,
-    this.index,
+    this.payment,
+
     this.onTapPayment,
   );
 
@@ -37,15 +38,15 @@ class PaymentTypeView extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Image.asset(
-                  "${paymentList.elementAt(index)['logo']}",
-                  color: Colors.white,
-                  width: MARGIN_LARGE,
-                  height: MARGIN_LARGE,
-                ),
+                // Image.asset(
+                //   "${payment.elementAt(index)['logo']}",
+                //   color: Colors.white,
+                //   width: MARGIN_LARGE,
+                //   height: MARGIN_LARGE,
+                // ),
                 const SizedBox(width: MARGIN_MEDIUM_X),
                 Text(
-                  "${paymentList.elementAt(index)['type']}",
+                  payment?.name?? "",
                   style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: TEXT_REGULAR_2Xx,

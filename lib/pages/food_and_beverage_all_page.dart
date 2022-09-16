@@ -1,23 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:the_movie_booking_app/data/models/data_model.dart';
+import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
+import 'package:the_movie_booking_app/data/vos/cinema_vo.dart';
 import 'package:the_movie_booking_app/pages/ticket_check_out_page.dart';
+import '../data/vos/snack_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/germs.dart';
 import '../resources/strings.dart';
-import '../viewers/food_and_beverage_data_view.dart';
+import '../viewers/food_and_beverage_data_section_view.dart';
 
 class FoodAndBeverageAllPage extends StatefulWidget {
+  final String location;
+  final int movieId;
+  final CinemaVO? cinema;
+  final int cinemaDayTimeSlotId;
+  final String startTime;
+  final String date;
+  final String seatNo;
+  FoodAndBeverageAllPage(this.location, this.movieId, this.cinema,
+      this.cinemaDayTimeSlotId, this.startTime, this.date, this.seatNo);
   @override
   State<FoodAndBeverageAllPage> createState() => _FoodAndBeverageAllPageState();
 }
 
 class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
+  DataModel mMovieModel = DataModelImpl();
+  List<SnackVO>? snackList;
+  int count = 0;
+
+  // int price = 0;
+  int co = 0;
+  int total = 0;
+  List<Map<String, dynamic>> selectedSnacks = [];
+
   @override
+  void initState() {
+    super.initState();
+    mMovieModel.getSnackList()?.then((snacks) {
+      setState(() {
+        snackList = snacks;
+        // List<Map<String,dynamic>>? testList;
+        // Map<String,dynamic>? testMap={"id": snackList?[0].id?? 0,"name" :snackList?[0].name ?? '',"price" :snackList?[0].price ?? 0,"qty" :count,};
+        // testList?.add(testMap);
+        // debugPrint(testList?[0]["name"].toString());
+      });
+    }).catchError((error) {
+      debugPrint(error.toString());
+    });
+  }
+
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: foodTitleList.length,
       child: Scaffold(
+        backgroundColor: PAGE_BACKGROUND_COLOR,
         appBar: AppBar(
           elevation: 0,
           automaticallyImplyLeading: false,
@@ -43,10 +81,16 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
               ),
               const SizedBox(width: MARGIN_EXTRA_LARGE),
               GestureDetector(
-                onTap: () => Navigator.push(
+                onTap: () => _navigateToTicketCheckOutPage(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => TicketCheckOutPage())),
+                    widget.location,
+                    widget.movieId,
+                    widget.cinema,
+                    widget.cinemaDayTimeSlotId,
+                    widget.startTime,
+                    widget.date,
+                    widget.seatNo,
+                    selectedSnacks),
                 child: const Text(
                   FOOD_AND_BEVERAGE_SKIP_TEXT,
                   style: TextStyle(
@@ -85,7 +129,6 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
           ),
         ),
         body: Container(
-          color: PAGE_BACKGROUND_COLOR,
           padding: const EdgeInsets.symmetric(
             horizontal: MARGIN_lLARGE,
             vertical: MARGIN_xXLARGE,
@@ -93,9 +136,31 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                FoodAndBeverageDataSectionView(foodAllList),
+                FoodAndBeverageDataSectionView(snackList ?? [], (snacks) {
+                  setState(() {
+                    //count = c;
+                    selectedSnacks.add(snacks);
+                    total = ((total + snacks['price'] * 1000)).toInt();
+                    //count=(count+snacks['qty']).toInt();
+                    selectedSnacks = selectedSnacks.toSet().toList();
+                    //debugPrint(count.toString());
+                    // count=count+tempCount;
+                    // debugPrint(selectedSnacks.toString());
+                  });
+                  int tempCount = 0;
+                  for (int i = 0; i < selectedSnacks.length; i++) {
+                    tempCount = (tempCount + selectedSnacks.elementAt(i)['qty'])
+                        .toInt();
+                    //tempCount=count;
+                    //total = (total+selectedSnacks.elementAt(i)['price']).toInt();
+                  }
+
+                  count = tempCount.toInt();
+                  selectedSnacks.forEach((items) {
+                    debugPrint("Home Snack===>${items.toString()}");
+                  });
+                }),
                 const SizedBox(height: MARGIN_xXLARGE),
-                // BottomSheetBar(body: body, expandedBuilder: expandedBuilder)
               ],
             ),
           ),
@@ -110,23 +175,77 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
               horizontal: MARGIN_MEDIUM_3LX,
               vertical: MARGIN_CARD_MEDIUM_2L,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: MARGIN_CARD_MEDIUM_2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MARGIN_CARD_MEDIUM_2,
+            ),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(MARGIN_MEDIUM_X),
                 color: PRIMARY_COLOR_1),
             child: Row(
               children: [
-                flloatingButtonImageView(),
+                flloatingButtonImageView(count),
+                FloatingButtonBottomSheetButtonView(selectedSnacks,(location,selectedSnacksFromBottomSheet){
+                  setState(() {
+                    selectedSnacks=selectedSnacksFromBottomSheet;
+                    int tempCount = 0;
+                    for (int i = 0; i < selectedSnacks.length; i++) {
+                      tempCount = (tempCount + selectedSnacks.elementAt(i)['qty'])
+                          .toInt();
+                      //tempCount=count;
+                      //total = (total+selectedSnacks.elementAt(i)['price']).toInt();
+                    }
+
+                    count = tempCount.toInt();
+                    selectedSnacks.forEach((items) {
+                      debugPrint("On Tap Snack at Home===>${items.toString()}");
+                    });
+                  });
+                }, widget.location, count,total,()=>_navigateToTicketCheckOutPage(
+                    context,
+                    widget.location,
+                    widget.movieId,
+                    widget.cinema,
+                    widget.cinemaDayTimeSlotId,
+                    widget.startTime,
+                    widget.date,
+                    widget.seatNo,
+                    selectedSnacks)),
+
                 //const SizedBox(width: MARGIN_MEDIUM),
-                FloatingButtonBottomSheetButtonView(
-                  () => showBottom(),
-                ),
+                // FloatingButtonBottomSheetButtonView(
+                //   (location) => showBottom(widget.location,count, widget.movieId, widget.cinema, widget.cinemaDayTimeSlotId,
+                //       widget.startTime, widget.date, selectedSnacks,(addCount,index,c){
+                //        setState((){
+                //          selectedSnacks.elementAt(index)['qty']=addCount;
+                //          count=c;
+                //        });
+                //       },(minusCount,index,c){
+                //         setState((){
+                //           selectedSnacks.elementAt(index)['qty']=minusCount;
+                //           count=c;
+                //         });
+                //       }
+                //   ),
+                //   widget.location,
+                //   count,
+                // ),
                 const Spacer(),
-                FloatingButtonTotalPriceView(),
+                FloatingButtonTotalPriceView(
+                  totalPrice: total,
+                ),
                 const SizedBox(width: MARGIN_MEDIUM_X),
                 NavigateToTicketCheckOutPageButtonView(
-                  () => _navigateToTicketCheckOutPage(context),
-                )
+                    (location) => _navigateToTicketCheckOutPage(
+                        context,
+                        location,
+                        widget.movieId,
+                        widget.cinema,
+                        widget.cinemaDayTimeSlotId,
+                        widget.startTime,
+                        widget.date,
+                        widget.seatNo,
+                        selectedSnacks),
+                    widget.location)
               ],
             ),
           ),
@@ -136,16 +255,106 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
     );
   }
 
-  Future<dynamic> _navigateToTicketCheckOutPage(BuildContext context) {
+  Future<dynamic> _navigateToTicketCheckOutPage(
+      BuildContext context,
+      location,
+      int movieId,
+      CinemaVO? cinema,
+      int cinemaDayTimeSlotId,
+      String startTime,
+      String date,
+      String seatNo,
+      List<Map<String, dynamic>> selectedSnacks) {
     return Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TicketCheckOutPage(),
+        builder: (context) => TicketCheckOutPage(location, movieId, cinema,
+            cinemaDayTimeSlotId, startTime, date, seatNo, selectedSnacks),
       ),
     );
   }
 
+
+}
+
+class NavigateToTicketCheckOutPageButtonView extends StatelessWidget {
+  final String location;
+  final Function(String) onTapButton;
+  NavigateToTicketCheckOutPageButtonView(this.onTapButton, this.location);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onTapButton(location),
+      child: Image.asset(
+        "assets/images/right_arrow.png",
+        color: APPBAR_COLOR,
+      ),
+    );
+  }
+}
+
+class FloatingButtonTotalPriceView extends StatelessWidget {
+  const FloatingButtonTotalPriceView({
+    Key? key,
+    required this.totalPrice,
+  }) : super(key: key);
+  final int totalPrice;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      "${totalPrice}KS",
+      style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: TEXT_REGULAR_2X,
+          color: APPBAR_COLOR),
+    );
+  }
+}
+
+class FloatingButtonBottomSheetButtonView extends StatefulWidget {
+  final List<Map<String,dynamic>> selectedSnacks;
+  final String location;
+  final Function(String,List<Map<String,dynamic>>) onTapShowBottom;
+  late int count;
+  late int total;
+  final Function onTapNavigate;
+
+
+   FloatingButtonBottomSheetButtonView(this.selectedSnacks,
+      this.onTapShowBottom, this.location, this.count,this.total,this.onTapNavigate);
+
+  @override
+  State<FloatingButtonBottomSheetButtonView> createState() =>
+      _FloatingButtonBottomSheetButtonViewState();
+}
+
+class _FloatingButtonBottomSheetButtonViewState
+    extends State<FloatingButtonBottomSheetButtonView> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+       setState((){
+         showBottom();
+         widget.onTapShowBottom(widget.location,widget.selectedSnacks);
+         widget.selectedSnacks.forEach((items) {
+           debugPrint("On Tap Snack===>${items.toString()}");
+         });
+       });
+        // widget.onTapShowBottom()
+      },
+      child: Image.asset(
+        "assets/images/up.png",
+        width: MARGIN_LARGE,
+        height: MARGIN_LARGE,
+        color: APPBAR_COLOR,
+      ),
+    );
+  }
   void showBottom() {
+    //int bottomSheetCount=count;
     showModalBottomSheet(
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
@@ -169,9 +378,107 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                BottomSheetFoodListHeight(selectedFoodList: selectedFoodList),
+                BottomSheetFoodList(
+                  selectedFoodList: widget.selectedSnacks,
+                  onTapAdd: (addCount, index, c, bottomSheetSelectedSnacks) {
+                    //selectedSnacks.elementAt(index)['qty']=selectedSnacks.elementAt(index)['qty']+1;
+                    setState(() {
+                      widget.selectedSnacks.elementAt(index)['qty'] = addCount;
+                      widget.count = c;
+                      widget.total = 0;
+                      for (int i = 0; i < widget.selectedSnacks.length; i++) {
+                        widget.total = (widget.total +
+                            (widget.selectedSnacks.elementAt(i)['price'] *
+                                widget.selectedSnacks.elementAt(i)['qty'] *
+                                1000))
+                            .toInt();
+                      }
+                      //widget.selectedSnacks = [];
+                      //selectedSnacks = bottomSheetSelectedSnacks;
+                      bottomSheetSelectedSnacks.forEach((items) {
+                        debugPrint("Main Snack===>${items.toString()}");
+                      });
+                    });
+                  },
+                  onTapMinus:
+                      (minusCount, index, c, bottomSheetSelectedSnacks) {
+                    setState(() {
+                      //selectedSnacks=bottomSheetSelectedSnacks;
+
+                      widget.selectedSnacks.elementAt(index)['qty'] = minusCount;
+                      widget.count = c;
+                      widget.total = 0;
+                      for (int i = 0; i < widget.selectedSnacks.length; i++) {
+                        widget.total = (widget.total +
+                            (widget.selectedSnacks.elementAt(i)['price'] *
+                                widget.selectedSnacks.elementAt(i)['qty'] *
+                                1000))
+                            .toInt();
+                      }
+                      //selectedSnacks = [];
+                      //selectedSnacks = bottomSheetSelectedSnacks;
+                      bottomSheetSelectedSnacks.forEach((items) {
+                        debugPrint("Main Snack===>${items.toString()}");
+                      });
+                    });
+                    // selectedSnacks.elementAt(index)['qty']=minusCount;
+                    // showBottomCount=c;
+                  },
+                  count: widget.count,
+                ),
                 const SizedBox(height: MARGIN_MEDIUM_2x),
-                TotalFoodPriceView(),
+                // TotalFoodPriceView(
+                //     widget.location,
+                //     count,
+                //     widget.movieId,
+                //     widget.cinema,
+                //     widget.cinemaDayTimeSlotId,
+                //     widget.startTime,
+                //     widget.date,
+                //     selectedSnacks,
+                //     total),
+                Container(
+                  height: MARGIN_XXLARGE,
+                  width: double.infinity,
+                  color: PAGE_BACKGROUND_COLOR,
+                  child: Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(MARGIN_MEDIUM_X),
+                        color: PRIMARY_COLOR_1),
+                    child: Row(
+                      children: [
+                        flloatingButtonImageView(widget.count),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Image.asset(
+                            "assets/images/down.png",
+                            width: MARGIN_LARGE,
+                            height: MARGIN_LARGE,
+                            color: APPBAR_COLOR,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          "${widget.total}Ks",
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: TEXT_REGULAR_2X,
+                              color: APPBAR_COLOR),
+                        ),
+                        const SizedBox(width: MARGIN_MEDIUM_X),
+                        GestureDetector(
+                          onTap: () => widget.onTapNavigate(),
+                          child: Image.asset(
+                            "assets/images/right_arrow.png",
+                            color: APPBAR_COLOR,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                )
               ],
             ),
           );
@@ -179,58 +486,15 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
   }
 }
 
-class NavigateToTicketCheckOutPageButtonView extends StatelessWidget {
-  final Function onTapButton;
-  NavigateToTicketCheckOutPageButtonView(this.onTapButton);
-
+class flloatingButtonImageView extends StatefulWidget {
+  final int foodCount;
+  flloatingButtonImageView(this.foodCount);
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onTapButton(),
-      child: Image.asset(
-        "assets/images/right_arrow.png",
-        color: APPBAR_COLOR,
-      ),
-    );
-  }
+  State<flloatingButtonImageView> createState() =>
+      _flloatingButtonImageViewState();
 }
 
-class FloatingButtonTotalPriceView extends StatelessWidget {
-  // const FloatingButtonTotalPriceView({
-  //   Key? key,
-  // }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Text(
-      "2000Ks",
-      style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: TEXT_REGULAR_2X,
-          color: APPBAR_COLOR),
-    );
-  }
-}
-
-class FloatingButtonBottomSheetButtonView extends StatelessWidget {
-  final Function showBottom;
-  FloatingButtonBottomSheetButtonView(this.showBottom);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => showBottom(),
-      child: Image.asset(
-        "assets/images/up.png",
-        width: MARGIN_LARGE,
-        height: MARGIN_LARGE,
-        color: APPBAR_COLOR,
-      ),
-    );
-  }
-}
-
-class flloatingButtonImageView extends StatelessWidget {
+class _flloatingButtonImageViewState extends State<flloatingButtonImageView> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -239,7 +503,7 @@ class flloatingButtonImageView extends StatelessWidget {
         children: [
           Image.asset("assets/images/foodAndBeverage.png"),
           Positioned(
-            bottom: MARGIN_MEDIUM_X,
+            bottom: MARGIN_SMALL_LX,
             left: MARGIN_MEDIUM_3,
             child: Container(
               decoration: const BoxDecoration(
@@ -247,12 +511,12 @@ class flloatingButtonImageView extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Padding(
-                padding: const EdgeInsets.all(MARGIN_SMALL),
+                padding: const EdgeInsets.all(MARGIN_SMALL_L),
                 child: Text(
-                  "2",
+                  widget.foodCount.toString(),
                   style: GoogleFonts.inter(
                     textStyle: Theme.of(context).textTheme.bodySmall,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w600,
                     fontSize: MARGIN_MEDIUM,
                     color: Colors.white,
                   ),
@@ -266,8 +530,44 @@ class flloatingButtonImageView extends StatelessWidget {
   }
 }
 
-class TotalFoodPriceView extends StatelessWidget {
+class TotalFoodPriceView extends StatefulWidget {
+  final String location;
+  final int foodCount;
+  final int movieId;
+  final CinemaVO? cinema;
+  final int cinemaDayTimeSlotId;
+  final String startTime;
+  final String date;
+  final List<Map<String, dynamic>> snackList;
+  final int total;
+  TotalFoodPriceView(
+    this.location,
+    this.foodCount,
+    this.movieId,
+    this.cinema,
+    this.cinemaDayTimeSlotId,
+    this.startTime,
+    this.date,
+    this.snackList,
+    this.total,
+  );
+
   @override
+  State<TotalFoodPriceView> createState() => _TotalFoodPriceViewState();
+}
+
+class _TotalFoodPriceViewState extends State<TotalFoodPriceView> {
+  //int total = 0;
+  @override
+  // void initState() {
+  //   super.initState();
+  //   setState(() {
+  //     for (int i = 0; i < widget.snackList.length; i++) {
+  //       total = (total + widget.snackList.elementAt(i)['price']).toInt();
+  //     }
+  //   });
+  // }
+
   Widget build(BuildContext context) {
     return Container(
       height: MARGIN_XXLARGE,
@@ -280,7 +580,7 @@ class TotalFoodPriceView extends StatelessWidget {
             color: PRIMARY_COLOR_1),
         child: Row(
           children: [
-            flloatingButtonImageView(),
+            flloatingButtonImageView(widget.foodCount),
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Image.asset(
@@ -291,26 +591,31 @@ class TotalFoodPriceView extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            const Text(
-              "2000Ks",
-              style: TextStyle(
+            Text(
+              "${widget.total}Ks",
+              style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: TEXT_REGULAR_2X,
                   color: APPBAR_COLOR),
             ),
             const SizedBox(width: MARGIN_MEDIUM_X),
-            GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TicketCheckOutPage(),
-                ),
-              ),
-              child: Image.asset(
-                "assets/images/right_arrow.png",
-                color: APPBAR_COLOR,
-              ),
-            )
+            // GestureDetector(
+            //   onTap: () => Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //           builder: (context) => TicketCheckOutPage(
+            //               widget.location,
+            //               widget.movieId,
+            //               widget.cinema,
+            //               widget.cinemaDayTimeSlotId,
+            //               widget.startTime,
+            //               widget.date,
+            //               widget.snackList))),
+            //   child: Image.asset(
+            //     "assets/images/right_arrow.png",
+            //     color: APPBAR_COLOR,
+            //   ),
+            // )
           ],
         ),
       ),
@@ -318,20 +623,34 @@ class TotalFoodPriceView extends StatelessWidget {
   }
 }
 
-class BottomSheetFoodListHeight extends StatelessWidget {
-  const BottomSheetFoodListHeight({
+class BottomSheetFoodList extends StatefulWidget {
+  const BottomSheetFoodList({
     Key? key,
     required this.selectedFoodList,
+    required this.onTapAdd,
+    required this.onTapMinus,
+    required this.count,
   }) : super(key: key);
 
   final List<Map<String, dynamic>> selectedFoodList;
+  final Function(int, int, int, List<Map<String, dynamic>>) onTapAdd;
+  final Function(int, int, int, List<Map<String, dynamic>>) onTapMinus;
+  final int count;
 
+  @override
+  State<BottomSheetFoodList> createState() => _BottomSheetFoodListState();
+}
+
+class _BottomSheetFoodListState extends State<BottomSheetFoodList> {
+  int addCount = 0;
+  int minusCount = 0;
+  int _count = 0;
   @override
   Widget build(BuildContext context) {
     return Container(
       height: BOTTOM_SHEET_FOOD_LIST_HEIGHT,
       child: ListView.builder(
-          itemCount: selectedFoodList.length,
+          itemCount: widget.selectedFoodList.length,
           shrinkWrap: true,
           itemBuilder: (BuildContext context, int index) {
             return Container(
@@ -346,7 +665,7 @@ class BottomSheetFoodListHeight extends StatelessWidget {
                         Container(
                           width: MediaQuery.of(context).size.width / 3.5,
                           child: Text(
-                            "${selectedFoodList.elementAt(index)['name']}",
+                            "${widget.selectedFoodList.elementAt(index)['name']}",
                             style: GoogleFonts.inter(
                               textStyle: Theme.of(context).textTheme.bodySmall,
                               fontWeight: FontWeight.w600,
@@ -356,26 +675,46 @@ class BottomSheetFoodListHeight extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: MARGIN_XXLARGE),
-                        Container(
-                          decoration: const BoxDecoration(
-                              color: PRIMARY_COLOR_1, shape: BoxShape.circle),
-                          child: Padding(
-                            padding: const EdgeInsets.all(MARGIN_XSMALL),
-                            child: Text(
-                              "+",
-                              style: GoogleFonts.inter(
-                                textStyle:
-                                    Theme.of(context).textTheme.bodySmall,
-                                fontWeight: FontWeight.w700,
-                                fontSize: TEXT_REGULAR_2X,
-                                color: BUTTON_TEXT_COLOR_NS,
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              addCount = widget.selectedFoodList
+                                      .elementAt(index)['qty'] +
+                                  1;
+                              _count = widget.count + 1;
+                              widget.onTapAdd(addCount, index, _count,
+                                  widget.selectedFoodList);
+                              widget.selectedFoodList.forEach((items) {
+                                debugPrint(
+                                    "Bottom Snack===>${items.toString()}");
+                              });
+                            });
+                          },
+                          child: Container(
+                            decoration: const BoxDecoration(
+                                color: PRIMARY_COLOR_1, shape: BoxShape.circle),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: MARGIN_SMALL,
+                                  top: MARGIN_XSMALL,
+                                  left: MARGIN_XSMALL,
+                                  right: MARGIN_XSMALL),
+                              child: Text(
+                                "+",
+                                style: GoogleFonts.inter(
+                                  textStyle:
+                                      Theme.of(context).textTheme.bodySmall,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: TEXT_REGULAR_2X,
+                                  color: BUTTON_TEXT_COLOR_NS,
+                                ),
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(width: MARGIN_CARD_MEDIUM_2L),
                         Text(
-                          "${selectedFoodList.elementAt(index)['qty']}",
+                          "${widget.selectedFoodList.elementAt(index)['qty']}",
                           style: GoogleFonts.inter(
                             textStyle: Theme.of(context).textTheme.bodySmall,
                             fontWeight: FontWeight.w700,
@@ -384,26 +723,59 @@ class BottomSheetFoodListHeight extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: MARGIN_CARD_MEDIUM_2L),
-                        Container(
-                          decoration: const BoxDecoration(
-                              color: PRIMARY_COLOR_1, shape: BoxShape.circle),
-                          child: Padding(
-                            padding: EdgeInsets.all(MARGIN_XSMALL),
-                            child: Text(
-                              "-",
-                              style: GoogleFonts.inter(
-                                textStyle:
-                                    Theme.of(context).textTheme.bodySmall,
-                                fontWeight: FontWeight.w700,
-                                fontSize: TEXT_REGULAR_2X,
-                                color: BUTTON_TEXT_COLOR_NS,
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              minusCount = widget.selectedFoodList
+                                      .elementAt(index)['qty'] -
+                                  1;
+                              _count = widget.count - 1;
+                              if (widget.selectedFoodList
+                                      .elementAt(index)['qty'] !=
+                                  0) {
+                                widget.onTapMinus(minusCount, index, _count,
+                                    widget.selectedFoodList);
+                                widget.selectedFoodList.forEach((items) {
+                                  debugPrint(
+                                      "Bottom Snack===>${items.toString()}");
+                                });
+                                if (widget.selectedFoodList
+                                        .elementAt(index)['qty'] ==
+                                    0) {
+                                  widget.selectedFoodList.removeAt(index);
+                                  debugPrint(
+                                      "Removed Snack===>${widget.selectedFoodList.toString()}");
+                                }
+                              }
+                            });
+                          },
+                          child: Container(
+                            decoration: const BoxDecoration(
+                                color: PRIMARY_COLOR_1, shape: BoxShape.circle),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: MARGIN_SMALL,
+                                  top: MARGIN_XSMALL,
+                                  left: MARGIN_SMALL,
+                                  right: MARGIN_SMALL),
+                              child: Center(
+                                child: Text(
+                                  "-",
+                                  style: GoogleFonts.inter(
+                                    textStyle:
+                                        Theme.of(context).textTheme.bodySmall,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: TEXT_REGULAR_2X,
+                                    color: BUTTON_TEXT_COLOR_NS,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(width: MARGIN_XXXXXLARGE),
                         Text(
-                          "${selectedFoodList.elementAt(index)['price']}Ks",
+                          "${widget.selectedFoodList.elementAt(index)['price'] * widget.selectedFoodList.elementAt(index)['qty'] * 1000}Ks",
                           style: GoogleFonts.inter(
                             textStyle: Theme.of(context).textTheme.bodySmall,
                             fontWeight: FontWeight.w700,

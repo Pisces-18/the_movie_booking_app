@@ -9,8 +9,8 @@ import 'choose_seat_page.dart';
 import 'cinema_info_page.dart';
 
 class SearchCinemaPage extends StatelessWidget {
-
-
+ final String location;
+ SearchCinemaPage(this.location);
   String facilitiesDropDownValue = facilityDropDownItem[0];
 
   String formatDropdownValue = formatDropDownItem[0];
@@ -18,6 +18,7 @@ class SearchCinemaPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: APPBAR_COLOR,
@@ -64,7 +65,6 @@ class SearchCinemaPage extends StatelessWidget {
         height: MediaQuery.of(context).size.height / 1,
         padding: const EdgeInsets.symmetric(
             horizontal: MARGIN_MEDIUM_3LX, vertical: MARGIN_MEDIUM),
-        color: PAGE_BACKGROUND_COLOR,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,15 +76,15 @@ class SearchCinemaPage extends StatelessWidget {
               const SizedBox(height: MARGIN_xXLARGE),
               TimeRangeSectionView(),
               const SizedBox(height: MARGIN_XXXlLARGE),
-              Column(
-                  children: cinemaList
-                      .map(
-                        (name) => CinemaExpansionView(
-                            name,
-                            () => _navigateToCinemaInfoPage(context),
-                            () => _navigateToChooseSeatPage(context),timeAndAvailableSeatData),
-                      )
-                      .toList()),
+              // Column(
+              //     children: cinemaList
+              //         .map(
+              //           (name) => CinemaExpansionView(
+              //               name,
+              //               (location) => _navigateToCinemaInfoPage(context,location),
+              //               (location) => _navigateToChooseSeatPage(context,location),timeAndAvailableSeatData,location),
+              //         )
+              //         .toList()),
             ],
           ),
         ),
@@ -92,14 +92,14 @@ class SearchCinemaPage extends StatelessWidget {
     );
   }
 
-  Future<dynamic> _navigateToCinemaInfoPage(BuildContext context) =>
+  Future<dynamic> _navigateToCinemaInfoPage(BuildContext context, location) =>
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CinemaInfoPage()));
+          context, MaterialPageRoute(builder: (context) => CinemaInfoPage(location,"")));
 
-  Future<dynamic> _navigateToChooseSeatPage(BuildContext context) {
-    return Navigator.push(
-        context, MaterialPageRoute(builder: (context) => ChooseSeatPage()));
-  }
+  // Future<dynamic> _navigateToChooseSeatPage(BuildContext context,String location) {
+  //   return Navigator.push(
+  //       context, MaterialPageRoute(builder: (context) => ChooseSeatPage(location: location,)));
+  // }
 }
 
 class TimeRangeSectionView extends StatefulWidget {

@@ -19,6 +19,7 @@ class _CancelBookingPageState extends State<CancelBookingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -46,11 +47,11 @@ class _CancelBookingPageState extends State<CancelBookingPage> {
         padding: const EdgeInsets.symmetric(
           vertical: MARGIN_xXLARGE,
         ),
-        color: APPBAR_COLOR,
+
         child: SingleChildScrollView(
           child: Column(
             children: [
-              TicketDetailsView(widget.movieName,foodList),
+              //TicketDetailsView(widget.movieName,foodList),
               const SizedBox(height: MARGIN_XXXLARGE),
               RefundAmountAndCancelBookingSectionView(()=>_navigateToTicketPage(context))
             ],

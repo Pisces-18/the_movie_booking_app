@@ -45,6 +45,12 @@ dependencies:
   carousel_slider: ^4.1.1
   measure_size: ^3.0.1
   flutter_range_slider:
+  json_serializable: ^6.3.1
+  json_annotation: ^4.6.0
+  http: ^0.13.5
+  dio: ^4.0.6
+  retrofit: '>=3.0.0 <4.0.0'
+  intl: ^0.17.0
 
 
 
@@ -58,21 +64,23 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  build_runner: ^2.2.0
+  retrofit_generator:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
-  fonts:
-    - family: DM Sans
-      fonts:
-        - asset: fonts/DM Sans/DMSans-Bold.ttf
-        - asset: fonts/DM Sans/DMSans-BoldItalic.ttf
-        - asset: fonts/DM Sans/DMSans-Italic.ttf
-        - asset: fonts/DM Sans/DMSans-Medium.ttf
-        - asset: fonts/DM Sans/DMSans-MediumItalic.ttf
-        - asset: fonts/DM Sans/DMSans-Regular.ttf
+#  fonts:
+#    - family: DM Sans
+#      fonts:
+#        - asset: fonts/DM Sans/DMSans-Bold.ttf
+#        - asset: fonts/DM Sans/DMSans-BoldItalic.ttf
+#        - asset: fonts/DM Sans/DMSans-Italic.ttf
+#        - asset: fonts/DM Sans/DMSans-Medium.ttf
+#        - asset: fonts/DM Sans/DMSans-MediumItalic.ttf
+#        - asset: fonts/DM Sans/DMSans-Regular.ttf
 
 
 

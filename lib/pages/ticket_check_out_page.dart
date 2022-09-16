@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
 import 'package:the_movie_booking_app/pages/payment_page.dart';
+import '../data/models/data_model.dart';
+import '../data/vos/cinema_vo.dart';
+import '../data/vos/movie_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/germs.dart';
@@ -7,14 +11,63 @@ import '../resources/strings.dart';
 import '../viewers/ticket_details_view.dart';
 
 class TicketCheckOutPage extends StatefulWidget {
-
+  final String location;
+  final int movieId;
+  final CinemaVO? cinema;
+  final int cinemaDayTimeSlotId;
+  final String startTime;
+  final String? date;
+  final String seatNo;
+  final List<Map<String, dynamic>> snackList;
+  TicketCheckOutPage(
+      this.location,
+      this.movieId,
+      this.cinema,
+      this.cinemaDayTimeSlotId,
+      this.startTime,
+      this.date,
+      this.seatNo,
+      this.snackList);
 
   @override
   State<TicketCheckOutPage> createState() => _TicketCheckOutPageState();
 }
 
 class _TicketCheckOutPageState extends State<TicketCheckOutPage> {
+  DataModel dDataModel = DataModelImpl();
+
+  // CinemaVO? cinema;
+  MovieVO? mMovie;
+  int totalAmount = 0;
+
   @override
+  void initState() {
+    super.initState();
+
+    ///Get Movie
+    dDataModel.getMovieDetails(widget.movieId)?.then((movie) {
+      setState(() {
+        mMovie = movie;
+        debugPrint(mMovie?.title.toString());
+      });
+    }).catchError((error) {
+      debugPrint(error.toString());
+    });
+    // debugPrint(widget.cinema?.cinema.toString());
+    // debugPrint(widget.cinemaDayTimeSlotId.toString());
+    // debugPrint(widget.date);
+    // debugPrint(widget.snackList.toString());
+
+    for (int i = 0; i < widget.snackList.length; i++) {
+      totalAmount = (totalAmount +
+              (widget.snackList.elementAt(i)['price'] *
+                  widget.snackList.elementAt(i)['qty'] *
+                  1000))
+          .toInt();
+    }
+    totalAmount = totalAmount + 500;
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -41,18 +94,28 @@ class _TicketCheckOutPageState extends State<TicketCheckOutPage> {
       body: Container(
         height: MediaQuery.of(context).size.height,
         padding: const EdgeInsets.symmetric(
-          horizontal: MARGIN_CARD_MEDIUM_2,
           vertical: MARGIN_xXLARGE,
         ),
         color: APPBAR_COLOR,
         child: SingleChildScrollView(
           child: Column(
             children: [
-              TicketDetailsView("Black Widow (3D) (U/A)",foodList),
+              TicketDetailsView(
+                  "${mMovie?.title} (3D) (U/A)",
+                  widget.cinema?.cinema ?? "",
+                  widget.date ?? DateTime.now().toString(),
+                  widget.startTime,
+                  widget.snackList,
+                totalAmount,(canceledFood,total){
+                    setState((){
+                      totalAmount=total+500;
+                    });
+              }
+              ),
               const SizedBox(height: MARGIN_XXXLARGE),
               ContinueButtonView(
-                () => _navigateToPaymentPage(context),
-              )
+                  (location) => _navigateToPaymentPage(context, location),
+                  widget.location)
             ],
           ),
         ),
@@ -60,23 +123,34 @@ class _TicketCheckOutPageState extends State<TicketCheckOutPage> {
     );
   }
 
-  Future<dynamic> _navigateToPaymentPage(BuildContext context) {
+  Future<dynamic> _navigateToPaymentPage(
+      BuildContext context, String location) {
     return Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PaymentPage(),
-                ),
-              );
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentPage(
+            location,
+            widget.movieId,
+            widget.cinema,
+            widget.cinemaDayTimeSlotId,
+            widget.startTime,
+            widget.date ?? DateTime.now().toString(),
+            widget.seatNo,
+            widget.snackList,
+        totalAmount),
+      ),
+    );
   }
 }
 
 class ContinueButtonView extends StatelessWidget {
-  final Function onTapContinue;
-  ContinueButtonView(this.onTapContinue);
+  final String location;
+  final Function(String) onTapContinue;
+  ContinueButtonView(this.onTapContinue, this.location);
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        onTap: () => onTapContinue(),
+        onTap: () => onTapContinue(location),
         child: Image.asset("assets/images/continueButton.png"));
   }
 }

@@ -1,40 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:the_movie_booking_app/pages/about_movie_page.dart';
 import 'package:the_movie_booking_app/widgets/drop_down_list_view.dart';
+import '../data/vos/movie_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/germs.dart';
 import '../resources/strings.dart';
-import '../viewers/movie_view.dart';
-
+import '../viewers/movie_section_view.dart';
 
 class SearchMoviePage extends StatefulWidget {
-  final List<Map<String, dynamic>> gridData;
+  List<MovieVO>? movieList;
   final int index;
+  final String location;
 
-  SearchMoviePage(this.gridData, this.index);
-  late int i=0;
+  SearchMoviePage(this.movieList, this.index,this.location);
+  //late int i = 0;
 
   @override
   State<SearchMoviePage> createState() => _SearchMoviePageState();
 }
 
 class _SearchMoviePageState extends State<SearchMoviePage> {
-  String genresdropdownValue = genresDropDownItem[0];
+  String genresDropDownValue = genresDropDownItem[0];
 
-  String formatdropDownValue = formatDropDownItem[0];
+  String formatDropDownValue = formatDropDownItem[0];
 
-  String monthdropDownValue = monthDropDownItem[0];
+  String monthDropDownValue = monthDropDownItem[0];
 
-
-
-
-  onTapMovie() => Navigator.push(context,
-      MaterialPageRoute(builder: (context) => (widget.index==0)?AboutMoviePage(false,widget.gridData,widget.i):AboutMoviePage(true,widget.gridData,widget.i)));
+  // onTapMovie() => Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //         builder: (context) => (widget.index == 0)
+  //             ? AboutMoviePage(
+  //                 false, widget.movieList, widget.i, widget.location)
+  //             : AboutMoviePage(
+  //                 true, widget.movieList, widget.i, widget.location)));
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: APPBAR_COLOR,
@@ -81,22 +86,38 @@ class _SearchMoviePageState extends State<SearchMoviePage> {
         height: MediaQuery.of(context).size.height / 1,
         padding: const EdgeInsets.symmetric(
             horizontal: MARGIN_MEDIUM_3LX, vertical: MARGIN_MEDIUM),
-        color: PAGE_BACKGROUND_COLOR,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
-              SearchTypeView(genresdropdownValue, genresDropDownItem, formatdropDownValue,
-                  formatDropDownItem, monthdropDownValue, monthDropDownItem, widget.index),
+              SearchTypeView(
+                  genresDropDownValue,
+                  genresDropDownItem,
+                  formatDropDownValue,
+                  formatDropDownItem,
+                  monthDropDownValue,
+                  monthDropDownItem,
+                  widget.index),
               const SizedBox(height: MARGIN_xXLARGE),
-             MovieView(widget.gridData, () => onTapMovie(), widget.index,(i){
-               widget.i=i;
-             })
+              MovieSectionView(
+                  widget.movieList,
+                  widget.index,
+                  (movieId) => _navigateToAboutMoviePage(context,movieId))
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<dynamic> _navigateToAboutMoviePage(BuildContext context,int movieId) {
+    return Navigator.push(context,
+                    MaterialPageRoute(
+                        builder: (context) => (widget.index == 0)
+                            ? AboutMoviePage(false,
+                                movieId, widget.location)
+                            : AboutMoviePage(true, movieId,
+                                widget.location)));
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:measure_size/measure_size.dart';
 
 import 'package:the_movie_booking_app/viewers/ticket_cancelion_policy_dialog_box_view.dart';
@@ -11,17 +12,32 @@ import '../widgets/ticket_date_time_location_icon_and_text_view.dart';
 
 class TicketDetailsView extends StatefulWidget {
   final String movieName;
+  final String cinemaName;
+  final String date;
+  final String startTime;
   final List<Map<String, dynamic>> foodList;
-  TicketDetailsView(this.movieName, this.foodList);
+ final int totalAmount;
+  final Function(Map<String, dynamic>,int) onTapCancel;
+
+  TicketDetailsView(
+    this.movieName,
+    this.cinemaName,
+    this.date,
+    this.startTime,
+    this.foodList,
+      this.totalAmount,this.onTapCancel
+
+  );
 
   @override
   State<TicketDetailsView> createState() => _TicketDetailsViewState();
 }
 
 class _TicketDetailsViewState extends State<TicketDetailsView> {
-   Size? _size;
+  Size? _size;
 
   @override
+
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -41,49 +57,48 @@ class _TicketDetailsViewState extends State<TicketDetailsView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MovieAndCinemaInfoView(movieName: widget.movieName),
-              FoodAndBeverageSectionView(widget.foodList),
-              const SizedBox(height: MARGIN_lLARGE),
-
-              MeasureSize(
-                onChange: (newSize){
-                  setState((){
-                    _size=newSize;
-                  });
-                },
-                child: Column(
-                  children: [
-                    ConvenienceFeeAndTicketCancellionPolicyView(),
-                    TotalAmountView()
-                  ],
-                ),
+              MovieAndCinemaInfoView(
+                movieName: widget.movieName,
+                cinemaName: widget.cinemaName,
+                startTime: widget.startTime,
+                date: widget.date,
               ),
+              FoodAndBeverageSectionView(widget.foodList,(canceledFood,total){
+                setState((){
+                  widget.onTapCancel(canceledFood,total);
+                });
+              }),
+              const SizedBox(height: MARGIN_lLARGE),
+              ConvenienceFeeAndTicketCancellionPolicyView(),
+              TotalAmountView(widget.totalAmount),
               // const SizedBox(height: MARGIN_MEDIUM_3),
             ],
           ),
         ),
+        Text(_size?.height.toString() ?? "",
+            style: TextStyle(color: Colors.white, fontSize: 22)),
         Positioned(
-            bottom: _size?.height?? 0,
-            child: TicketDividerView(_size?.width?? 0)),
+            bottom: TICKET_DETAILS_DIVIDER_HEIGHT, child: TicketDividerView()),
       ],
     );
   }
 }
 
 class TotalAmountView extends StatefulWidget {
+  final int totalAmount;
+  TotalAmountView(this.totalAmount);
   @override
   State<TotalAmountView> createState() => _TotalAmountViewState();
 }
 
 class _TotalAmountViewState extends State<TotalAmountView> {
-  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: MARGIN_LARGE, vertical: MARGIN_MEDIUM_3),
       child: Row(
-        children: const [
-          Text(
+        children: [
+          const Text(
             TOTAL_TEXT,
             style: TextStyle(
               fontWeight: FontWeight.w700,
@@ -93,8 +108,8 @@ class _TotalAmountViewState extends State<TotalAmountView> {
           ),
           Spacer(),
           Text(
-            "22500Ks",
-            style: TextStyle(
+            "${widget.totalAmount}Ks",
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: TEXT_REGULAR_2Xx,
               color: PRIMARY_COLOR_1,
@@ -108,14 +123,17 @@ class _TotalAmountViewState extends State<TotalAmountView> {
 
 class ConvenienceFeeAndTicketCancellionPolicyView extends StatefulWidget {
   @override
-  State<ConvenienceFeeAndTicketCancellionPolicyView> createState() => _ConvenienceFeeAndTicketCancellionPolicyViewState();
+  State<ConvenienceFeeAndTicketCancellionPolicyView> createState() =>
+      _ConvenienceFeeAndTicketCancellionPolicyViewState();
 }
 
-class _ConvenienceFeeAndTicketCancellionPolicyViewState extends State<ConvenienceFeeAndTicketCancellionPolicyView> {
+class _ConvenienceFeeAndTicketCancellionPolicyViewState
+    extends State<ConvenienceFeeAndTicketCancellionPolicyView> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(left: MARGIN_LARGE,right: MARGIN_LARGE,top: MARGIN_MEDIUM_X),
+      padding: EdgeInsets.only(
+          left: MARGIN_LARGE, right: MARGIN_LARGE, top: MARGIN_MEDIUM_X),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -192,7 +210,8 @@ class _ConvenienceFeeAndTicketCancellionPolicyViewState extends State<Convenienc
 
 class FoodAndBeverageSectionView extends StatefulWidget {
   final List<Map<String, dynamic>> foodList;
-  FoodAndBeverageSectionView(this.foodList);
+  final Function(Map<String, dynamic>,int) onTapCancel;
+  FoodAndBeverageSectionView(this.foodList, this.onTapCancel);
 
   @override
   State<FoodAndBeverageSectionView> createState() =>
@@ -202,7 +221,21 @@ class FoodAndBeverageSectionView extends StatefulWidget {
 class _FoodAndBeverageSectionViewState
     extends State<FoodAndBeverageSectionView> {
   bool isChangedIcon = false;
+  int total = 0;
   @override
+  void initState() {
+    super.initState();
+    setState(() {
+      for (int i = 0; i < widget.foodList.length; i++) {
+        total = (total +
+                (widget.foodList.elementAt(i)['price'] *
+                        widget.foodList.elementAt(i)['qty']) *
+                    1000)
+            .toInt();
+      }
+    });
+  }
+
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,32 +280,50 @@ class _FoodAndBeverageSectionViewState
               width: MARGIN_LARGE,
               height: MARGIN_LARGE,
             ),
-            trailing: const Text(
-              "2000Ks",
-              style: TextStyle(
+            trailing: Text(
+              "${total}Ks",
+              style: const TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: TEXT_REGULAR_2X,
                 color: Colors.white,
               ),
             ),
+            children: widget.foodList
+                .map((foods) => CancelFoodAndBeverageView(
+                        foods['name'], foods['price'], foods['qty'], () {
+                      setState(() {
+                        widget.foodList.remove(foods);
+                        total = 0;
+                        for (int i = 0; i < widget.foodList.length; i++) {
+                          total = (total +
+                              (widget.foodList.elementAt(i)['price'] *
+                                  widget.foodList.elementAt(i)['qty'] *
+                                  1000))
+                              .toInt();
+                        }
+                        total = total;
+                        widget.onTapCancel(foods,total);
+                      });
+                    }))
+                .toList(),
             // iconColor: Colors.white,
             // controlAffinity: ListTileControlAffinity.trailing,
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
-                height: TICKET_INFO_FOOD_AND_BEVERAGE_LIST_VIEW_HEIGHT,
-                child: ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: widget.foodList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return CancelFoodAndBeverageView(widget.foodList, index);
-                    }),
-              ),
-            ],
+            // children: [
+            //   Container(
+            //     padding:
+            //         const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
+            //     height: TICKET_INFO_FOOD_AND_BEVERAGE_LIST_VIEW_HEIGHT,
+            //     child: ListView.builder(
+            //         physics: NeverScrollableScrollPhysics(),
+            //         itemCount: widget.foodList.length,
+            //         itemBuilder: (BuildContext context, int index) {
+            //           return CancelFoodAndBeverageView(widget.foodList, index);
+            //         }),
+            //   ),
+            // ],
           ),
         ),
-        const SizedBox(height: MARGIN_lLARGE),
+
         // TicketDividerView(),
       ],
     );
@@ -283,9 +334,15 @@ class MovieAndCinemaInfoView extends StatefulWidget {
   const MovieAndCinemaInfoView({
     Key? key,
     required this.movieName,
+    required this.cinemaName,
+    required this.date,
+    required this.startTime,
   }) : super(key: key);
 
   final String movieName;
+  final String cinemaName;
+  final String date;
+  final String startTime;
 
   @override
   State<MovieAndCinemaInfoView> createState() => _MovieAndCinemaInfoViewState();
@@ -310,16 +367,16 @@ class _MovieAndCinemaInfoViewState extends State<MovieAndCinemaInfoView> {
           ),
           const SizedBox(height: MARGIN_MEDIUM_X),
           RichText(
-              text: const TextSpan(children: [
+              text: TextSpan(children: [
             TextSpan(
-              text: "JCGV : Junction City",
-              style: TextStyle(
+              text: widget.cinemaName,
+              style: const TextStyle(
                 fontWeight: FontWeight.w400,
                 fontSize: TEXT_REGULAR,
                 color: PRIMARY_COLOR_1,
               ),
             ),
-            TextSpan(
+            const TextSpan(
               text: " (SCREEN 2)",
               style: TextStyle(
                 fontWeight: FontWeight.w400,
@@ -333,10 +390,12 @@ class _MovieAndCinemaInfoViewState extends State<MovieAndCinemaInfoView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TicketDateTimeLocationIconAndTextView(
-                  "assets/images/date.png", "Sat, 18 Jun, 2022"),
+                  "assets/images/date.png",
+                  DateFormat('E, d MMM, yyy')
+                      .format(DateTime.parse(widget.date))),
               const SizedBox(width: MARGIN_xXLARGE),
               TicketDateTimeLocationIconAndTextView(
-                  "assets/images/date.png", "3:30PM"),
+                  "assets/images/date.png", widget.startTime),
               const SizedBox(width: MARGIN_xXLARGE),
               TicketDateTimeLocationIconAndTextView(
                 "assets/images/location.png",
