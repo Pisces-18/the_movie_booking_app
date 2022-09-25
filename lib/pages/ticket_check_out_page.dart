@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
+import 'package:the_movie_booking_app/data/vos/snack_vo.dart';
+import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
 import 'package:the_movie_booking_app/pages/payment_page.dart';
 import '../data/models/data_model.dart';
+import '../data/vos/cinema_and_show_time_slots_vo.dart';
 import '../data/vos/cinema_vo.dart';
 import '../data/vos/movie_vo.dart';
 import '../resources/colors.dart';
@@ -14,17 +17,15 @@ class TicketCheckOutPage extends StatefulWidget {
   final String location;
   final int movieId;
   final CinemaVO? cinema;
-  final int cinemaDayTimeSlotId;
-  final String startTime;
+  final TimeSlotVO? cinemaDayTimeSlot;
   final String? date;
   final String seatNo;
-  final List<Map<String, dynamic>> snackList;
+  final List<SnackVO>? snackList;
   TicketCheckOutPage(
       this.location,
       this.movieId,
       this.cinema,
-      this.cinemaDayTimeSlotId,
-      this.startTime,
+      this.cinemaDayTimeSlot,
       this.date,
       this.seatNo,
       this.snackList);
@@ -58,10 +59,10 @@ class _TicketCheckOutPageState extends State<TicketCheckOutPage> {
     // debugPrint(widget.date);
     // debugPrint(widget.snackList.toString());
 
-    for (int i = 0; i < widget.snackList.length; i++) {
+    for (int i = 0; i < (widget.snackList?.length?? 0); i++) {
       totalAmount = (totalAmount +
-              (widget.snackList.elementAt(i)['price'] *
-                  widget.snackList.elementAt(i)['qty'] *
+              ((widget.snackList?[i].price?? 0) *
+                  (widget.snackList?[i].quantity?? 0) *
                   1000))
           .toInt();
     }
@@ -102,10 +103,10 @@ class _TicketCheckOutPageState extends State<TicketCheckOutPage> {
             children: [
               TicketDetailsView(
                   "${mMovie?.title} (3D) (U/A)",
-                  widget.cinema?.cinema ?? "",
+                  widget.cinema,
                   widget.date ?? DateTime.now().toString(),
-                  widget.startTime,
-                  widget.snackList,
+                  widget.cinemaDayTimeSlot?.startTime?? "",
+                  widget.snackList?? [],
                 totalAmount,(canceledFood,total){
                     setState((){
                       totalAmount=total+500;
@@ -132,8 +133,7 @@ class _TicketCheckOutPageState extends State<TicketCheckOutPage> {
             location,
             widget.movieId,
             widget.cinema,
-            widget.cinemaDayTimeSlotId,
-            widget.startTime,
+            widget.cinemaDayTimeSlot,
             widget.date ?? DateTime.now().toString(),
             widget.seatNo,
             widget.snackList,

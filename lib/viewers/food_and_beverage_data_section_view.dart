@@ -6,8 +6,8 @@ import '../resources/dimens.dart';
 import '../resources/strings.dart';
 
 class FoodAndBeverageDataSectionView extends StatefulWidget {
-  final List<SnackVO>? snackList;
-  final Function(Map<String, dynamic>) onPressedADD;
+  final List<SnackVO> snackList;
+  final Function(SnackVO) onPressedADD;
   //final int foodCount;
   FoodAndBeverageDataSectionView(
       this.snackList, this.onPressedADD);
@@ -30,12 +30,12 @@ class _FoodAndBeverageDataSectionViewState
           mainAxisSpacing: MARGIN_lLARGE,
           mainAxisExtent: FOOD_AND_BEVERAGE_LIST_HEIGHT,
         ),
-        itemCount: widget.snackList?.length,
+        itemCount: widget.snackList.length,
         itemBuilder: (BuildContext context, int index) {
           return FoodAndBeverageDataView(
-              snack: widget.snackList?[index],
-              onPressedADD: (snacks) {
-                widget.onPressedADD(snacks);
+              snack: widget.snackList[index],
+              onPressedADD: (snack) {
+                widget.onPressedADD(snack);
               },
               );
         });
@@ -50,8 +50,8 @@ class FoodAndBeverageDataView extends StatefulWidget {
 
   }) : super(key: key);
 
-  final SnackVO? snack;
-  final Function(Map<String, dynamic>) onPressedADD;
+  final SnackVO snack;
+  final Function(SnackVO) onPressedADD;
   //final int foodCount;
 
   @override
@@ -60,8 +60,8 @@ class FoodAndBeverageDataView extends StatefulWidget {
 }
 
 class _FoodAndBeverageDataViewState extends State<FoodAndBeverageDataView> {
-  Map<String, dynamic> snack = {'id': 0, 'name': "", 'price': 0, 'qty': 0};
-  List<Map<String, dynamic>> snacks = [];
+  // Map<String, dynamic> snack = {'id': 0, 'name': "", 'price': 0, 'qty': 0};
+  // List<Map<String, dynamic>> snacks = [];
   int count = 0;
   int qty = 0;
   int selectedItem = 0;
@@ -86,12 +86,12 @@ class _FoodAndBeverageDataViewState extends State<FoodAndBeverageDataView> {
           children: [
             Center(
                 child: Image.network(
-              widget.snack?.image ?? "",
+              widget.snack.image ?? "",
               height: FOOD_AND_BEVERAGE_DATA_HEIGHT,
             )),
             const SizedBox(height: MARGIN_MEDIUM_3),
             Text(
-              widget.snack?.name ?? "",
+              widget.snack.name ?? "",
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: TEXT_SMALL,
@@ -100,7 +100,7 @@ class _FoodAndBeverageDataViewState extends State<FoodAndBeverageDataView> {
             ),
             const SizedBox(height: MARGIN_SMALL_L),
             Text(
-              "${widget.snack?.price}000KS",
+              "${widget.snack.price}000KS",
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: TEXT_SMALL,
@@ -111,21 +111,22 @@ class _FoodAndBeverageDataViewState extends State<FoodAndBeverageDataView> {
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  selectedItem = widget.snack?.id ?? 0;
+                  selectedItem = widget.snack.id ?? 0;
                   // Map<String,dynamic> selectedSnack={"id": widget.snack?.id?? 0,"name" :widget.snack?.name ?? '',"price" :widget.snack?.price ?? 0,"qty" :qty,};
 
                   //snacks.where((id) => snacks.elementAt(0)['id']==selectedItem);
 
-                  qty = qty + 1;
-                  snack['id'] = widget.snack?.id ?? 0;
-                  snack['name'] = widget.snack?.name ?? '';
-                  snack['price'] = widget.snack?.price ?? 0;
-                  snack['qty'] = qty;
+                  qty =qty+1;
+
+                  // snack['id'] = widget.snack?.id ?? 0;
+                  // snack['name'] = widget.snack?.name ?? '';
+                  // snack['price'] = widget.snack?.price ?? 0;
+                  // snack['qty'] = qty;
                   // snacks.add(snack);
-                 // debugPrint("price${snack['price']}");
+                 debugPrint("price${widget.snack}");
                 });
 
-                widget.onPressedADD(snack);
+                widget.onPressedADD(widget.snack);
               },
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(PRIMARY_COLOR_1),

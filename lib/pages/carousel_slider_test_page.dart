@@ -67,7 +67,8 @@ class _CarouselSliderTestPageState extends State<CarouselSliderTestPage> {
                 itemCount: 4,
                 itemBuilder:
                     (BuildContext context, int itemIndex, int pageViewIndex) {
-                  return BannerView();
+                 // return BannerView();
+                      return Container();
                 },
                 options: CarouselOptions(
                   height: MediaQuery.of(context).size.height / 4.5,

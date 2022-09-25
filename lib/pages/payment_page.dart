@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:the_movie_booking_app/data/models/data_model.dart';
 import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
+import 'package:the_movie_booking_app/data/vos/snack_vo.dart';
+import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
 import 'package:the_movie_booking_app/pages/ticket_confirmation_splash_screen_page.dart';
 import '../data/vos/checkout_snack_vo.dart';
+import '../data/vos/cinema_and_show_time_slots_vo.dart';
 import '../data/vos/cinema_vo.dart';
 import '../data/vos/payment_vo.dart';
 import '../resources/colors.dart';
@@ -14,13 +17,12 @@ class PaymentPage extends StatefulWidget {
   final String location;
   final int movieId;
   final CinemaVO? cinema;
-  final int cinemaDayTimeSlotId;
-  final String startTime;
+  final TimeSlotVO? cinemaDayTimeSlot;
   final String date;
   final String seatNo;
-  final List<Map<String,dynamic>> snackList;
+  final List<SnackVO>? snackList;
   final int totalAmount;
-  PaymentPage(this.location,this.movieId,this.cinema,this.cinemaDayTimeSlotId,this.startTime,this.date, this.seatNo,this.snackList,this.totalAmount);
+  PaymentPage(this.location,this.movieId,this.cinema,this.cinemaDayTimeSlot,this.date, this.seatNo,this.snackList,this.totalAmount);
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -30,27 +32,34 @@ class _PaymentPageState extends State<PaymentPage> {
   DataModel dDataModel=DataModelImpl();
 
   List<PaymentVO>? paymentList;
-  List<CheckOutSnackVO>? snackVO;
+  List<SnackVO>? snackVO;
+  String? userName;
   @override
 
   void initState(){
     super.initState();
 
-    for(int i=0;i<widget.snackList.length;i++){
-      snackVO?[i].id=widget.snackList.elementAt(i)['id'];
-      snackVO?[i].quantity=widget.snackList.elementAt(i)['qty'];
+    for(int i=0;i<(widget.snackList?.length?? 0);i++){
+      snackVO?[i].id=(widget.snackList?[i].id);
+      snackVO?[i].quantity=(widget.snackList?[i].quantity);
     }
 
     ///Get Payment List
-    dDataModel.getPaymentMethodList()?.then((payment) {
+    dDataModel.getPaymentTypes()?.then((payment) {
       setState((){
         paymentList=payment;
-        debugPrint(paymentList?[0].name.toString());
+        debugPrint(paymentList?[0].title.toString());
       });
     }).catchError((error){
       debugPrint(error.toString());
     });
     debugPrint(widget.totalAmount.toString());
+  }
+  final myController=TextEditingController();
+  @override
+  void dispose(){
+    super.dispose();
+    myController.dispose();
   }
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,9 +94,31 @@ class _PaymentPageState extends State<PaymentPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(left: MARGIN_XXLARGE,right: MARGIN_XXLARGE,top: MARGIN_XxlLARGE),
-                child: InputNameView(),
+               Padding(
+                padding: const EdgeInsets.only(left: MARGIN_XXLARGE,right: MARGIN_XXLARGE,top: MARGIN_XxlLARGE),
+                child: TextFormField(
+                  controller: myController,
+                  style: const TextStyle(color: DASH_COLOR_2),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: INPUT_NAME_HINT_TEXT,
+                    fillColor: DASH_COLOR_2,
+                    hintStyle: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: TEXT_REGULAR,
+                        color: DASH_COLOR_2),
+                    labelText: NAME_TEXT,
+                    labelStyle:const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: TEXT_REGULAR,
+                        color: PRIMARY_COLOR_1),
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(MARGIN_MEDIUM),
+                      borderSide: const BorderSide(color: PRIMARY_COLOR_1,),),
+
+                  ),
+                ),
               ),
               const SizedBox(height: MARGIN_XLARGE),
               PromoCodeView(),
@@ -97,11 +128,11 @@ class _PaymentPageState extends State<PaymentPage> {
                     const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
                 child: PaymentSectionView(
                   paymentList: paymentList ?? [],
-                  onTapPayment: (location) =>
+                  onTapPayment: (location,paymentId)
                   {
-                    _navigateToTicketConfirmationSplashScreenPage(
-                        context, location),
-                    dDataModel.postCheckout(widget.cinemaDayTimeSlotId, "G", widget.seatNo, widget.date, widget.totalAmount, widget.movieId, widget.cinema?.cinemaId?? 0, snackVO?? []),
+                   setState((){
+
+                   });
                   },location: widget.location,
                 ),
               ),
@@ -116,7 +147,7 @@ class _PaymentPageState extends State<PaymentPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => TicketConfirmationSplashScreenPage(location,),
+          builder: (context) => TicketConfirmationSplashScreenPage( cinema: widget.cinema, location: location),
         ),
       );
 }
@@ -129,7 +160,7 @@ class PaymentSectionView extends StatelessWidget {
   }) : super(key: key);
 
   final List<PaymentVO>? paymentList;
-  final Function(String) onTapPayment;
+  final Function(String,int) onTapPayment;
   final String location;
 
   @override
@@ -146,7 +177,7 @@ class PaymentSectionView extends StatelessWidget {
               itemCount: paymentList?.length,
               itemBuilder: (BuildContext context, int index) {
                 return PaymentTypeView(
-                    paymentList?[index], () => onTapPayment(location));
+                    paymentList?[index], (paymentId) => onTapPayment(location,paymentId));
               }),
         )
       ],
@@ -199,17 +230,34 @@ class PromoCodeView extends StatelessWidget {
   }
 }
 
-class InputNameView extends StatelessWidget {
+class InputNameView extends StatefulWidget {
   const InputNameView({
-    Key? key,
+    Key? key, required this.getName,
   }) : super(key: key);
+  final Function(String) getName;
 
   @override
+  State<InputNameView> createState() => _InputNameViewState();
+}
+
+class _InputNameViewState extends State<InputNameView> {
+  final myController=TextEditingController();
+  @override
+  void dispose(){
+    super.dispose();
+    myController.dispose();
+    setState((){
+      widget.getName(myController.text);
+    });
+  }
   Widget build(BuildContext context) {
     return  TextFormField(
+      controller: myController,
+      style: const TextStyle(color: DASH_COLOR_2),
       decoration: InputDecoration(
         border: InputBorder.none,
         hintText: INPUT_NAME_HINT_TEXT,
+        fillColor: DASH_COLOR_2,
         hintStyle: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: TEXT_REGULAR,

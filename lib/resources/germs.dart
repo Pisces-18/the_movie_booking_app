@@ -519,3 +519,6 @@ final List<Map<String, dynamic>> BookedticketData = [
     "refundAmount": "15000KS",
   },
 ];
+
+///Cinema
+final List<String> movieTypeList = ["2D", "3D", "3D IMAX", "3D DBOX"];

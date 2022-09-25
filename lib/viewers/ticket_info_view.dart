@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:measure_size/measure_size.dart';
+import 'package:the_movie_booking_app/data/vos/movie_vo.dart';
+import 'package:the_movie_booking_app/network/api_constants.dart';
+import '../data/vos/check_out_vo.dart';
+import '../data/vos/cinema_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../widgets/ticket_date_time_location_icon_and_text_view.dart';
 import 'ticket_divider_view.dart';
 
 class TicketInfoView extends StatefulWidget {
-  final String image;
-  final String movieName;
-  final String cinemaName;
-  final String seatNo;
-  final String date;
-  final String time;
+  final MovieVO? mMovie;
+  final CinemaVO? cinema;
+  final CheckOutVO? checkoutData;
   final Function onTapTicket;
-  TicketInfoView(this.onTapTicket, this.image, this.movieName, this.cinemaName,this.seatNo, this.date, this.time);
+  TicketInfoView(this.mMovie,this.cinema,this.checkoutData,this.onTapTicket);
 
   @override
   State<TicketInfoView> createState() => _TicketInfoViewState();
@@ -53,15 +54,15 @@ class _TicketInfoViewState extends State<TicketInfoView> {
                       padding: const EdgeInsets.only(bottom: MARGIN_MEDIUM_3),
                       child: MovieAndCinemaInfoView(
                           image:
-                              widget.image,
+                              "$IMAGE_BASE_URL${widget.mMovie?.posterPath?? ""}",
                           movieName:
-                              widget.movieName,
+                              widget.mMovie?.title?? "",
                           cinemaName:
-                              widget.cinemaName,
+                              widget.cinema?.name?? "",
                           numberOfTicket:
-                              "1",
+                              "${widget.checkoutData?.totalSeat}",
                           ticketNumber:
-                              widget.seatNo,
+                              widget.checkoutData?.seat?? "",
                           screenNumber:
                               "Screen 2"),
                     ),
@@ -74,11 +75,11 @@ class _TicketInfoViewState extends State<TicketInfoView> {
                       bottom: MARGIN_XxLARGE),
                   child: DateTimeLocationInfoView(
                     date:
-                        widget.date,
+                    widget.checkoutData?.bookingDate?? "",
                     time:
-                        widget.time,
+                        widget.checkoutData?.timeSlot?.startTime?? "",
                     location:
-                        "Q5H3+JPP, Corner of, Bogyoke Lann, Yangon",
+                        widget.cinema?.address?? "",
                   ),
                 )
               ],

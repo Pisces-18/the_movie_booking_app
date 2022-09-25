@@ -6,14 +6,10 @@ import '../resources/dimens.dart';
 import '../resources/germs.dart';
 
 class DateView extends StatefulWidget {
-  final List<Map<String, dynamic>> dateData;
-  final Function(String?) onTapDate;
-  // // final Object DateOB;
-  //late final int index;
-  //  //final Function(int) searchIndex;
-  DateView(
-    this.dateData,this.onTapDate
-  );
+  final List<String> dates;
+  final Function(String) onTapDate;
+
+  DateView(this.dates, this.onTapDate);
 
   @override
   State<DateView> createState() => _DateViewState();
@@ -21,12 +17,14 @@ class DateView extends StatefulWidget {
 
 class _DateViewState extends State<DateView> {
   String isSelectedItem = DateFormat('d').format(DateTime.now());
-
+  String today = DateFormat('d').format(DateTime.now());
+  String tomorrow =
+      DateFormat('d').format(DateTime.now().add(Duration(days: 1)));
   @override
   Widget build(BuildContext context) {
     return Container(
-     // margin: EdgeInsets.zero,
-     // padding: const EdgeInsets.only(left: MARGIN_MEDIUM_X),
+      // margin: EdgeInsets.zero,
+      // padding: const EdgeInsets.only(left: MARGIN_MEDIUM_X),
       height: DATE_VIEW_SECTION_HEIGHT,
       child: ListView.builder(
           scrollDirection: Axis.horizontal,
@@ -35,35 +33,38 @@ class _DateViewState extends State<DateView> {
             return GestureDetector(
               onTap: () => {
                 setState(() {
-                  isSelectedItem =
-                      widget.dateData.elementAt(index)['dayNumber'];
-                  widget.onTapDate("${widget.dateData.elementAt(index)['month']} ${widget.dateData.elementAt(index)['year']} ${widget.dateData.elementAt(index)['dayNumber']}");
+                  isSelectedItem = DateFormat('d')
+                      .format(DateTime.parse(widget.dates[index]));
+                  widget.onTapDate(widget.dates[index]);
+                  debugPrint("Widget dates${widget.dates[index]}");
                 }),
               },
-              child: Stack(
-                  children: [
+              child: Stack(children: [
                 Container(
                   width: DATE_VIEW_WIDTH,
-                  margin: const EdgeInsets.only(right: MARGIN_MEDIUM_3,left: MARGIN_MEDIUM_X),
-                  padding: const EdgeInsets.only(top: MARGIN_SMALL_Lx,),
+                  margin: const EdgeInsets.only(
+                      right: MARGIN_MEDIUM_3, left: MARGIN_MEDIUM_X),
+                  padding: const EdgeInsets.only(
+                    top: MARGIN_SMALL_Lx,
+                  ),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(MARGIN_MEDIUM),
-                    color: isSelectedItem ==
-                            widget.dateData.elementAt(index)['dayNumber']
-                        ? PRIMARY_COLOR_1
-                        : DATE_VIEW_BACKGROUND_COLOR,
-                      boxShadow:[
+                      borderRadius: BorderRadius.circular(MARGIN_MEDIUM),
+                      color: isSelectedItem ==
+                              DateFormat('d')
+                                  .format(DateTime.parse(widget.dates[index]))
+                          ? PRIMARY_COLOR_1
+                          : DATE_VIEW_BACKGROUND_COLOR,
+                      boxShadow: [
                         BoxShadow(
                           color: isSelectedItem ==
-                              widget.dateData.elementAt(index)['dayNumber']
+                                  DateFormat('d').format(
+                                      DateTime.parse(widget.dates[index]))
                               ? PRIMARY_COLOR_1
                               : DATE_VIEW_BACKGROUND_COLOR,
                           blurRadius: 2,
-                          offset: const Offset(0,0),
+                          offset: const Offset(0, 0),
                         )
-                      ]
-
-                  ),
+                      ]),
                   child: Column(
                     children: [
                       Align(
@@ -79,7 +80,16 @@ class _DateViewState extends State<DateView> {
                       ),
                       const SizedBox(height: MARGIN_MEDIUM_x),
                       Text(
-                        "${widget.dateData.elementAt(index)['dayText']}",
+                        (DateFormat('d').format(
+                                    DateTime.parse(widget.dates[index])) ==
+                                today)
+                            ? "Today"
+                            : (DateFormat('d').format(
+                                        DateTime.parse(widget.dates[index])) ==
+                                    tomorrow)
+                                ? "Tomorrow"
+                                : DateFormat('EE').format(
+                                    DateTime.parse(widget.dates[index])),
                         style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: TEXT_REGULAR,
@@ -87,7 +97,8 @@ class _DateViewState extends State<DateView> {
                       ),
                       const SizedBox(height: MARGIN_SMALL_LX),
                       Text(
-                        "${widget.dateData.elementAt(index)['month']}",
+                        DateFormat('MMM')
+                            .format(DateTime.parse(widget.dates[index])),
                         style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: TEXT_REGULAR,
@@ -95,7 +106,8 @@ class _DateViewState extends State<DateView> {
                       ),
                       const SizedBox(height: MARGIN_SMALL_LX),
                       Text(
-                        "${widget.dateData.elementAt(index)['dayNumber']}",
+                        DateFormat('d')
+                            .format(DateTime.parse(widget.dates[index])),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontWeight: FontWeight.w700,

@@ -9,7 +9,10 @@ class TimeSlotVO{
   @JsonKey(name: "start_time")
   String? startTime;
 
-  TimeSlotVO(this.cinemaDayTimeslotsId, this.startTime);
+  @JsonKey(name: "status")
+  int? status;
+
+  TimeSlotVO(this.cinemaDayTimeslotsId, this.startTime,this.status);
 
   factory TimeSlotVO.fromJson(Map<String,dynamic> json)=>_$TimeSlotVOFromJson(json);
 

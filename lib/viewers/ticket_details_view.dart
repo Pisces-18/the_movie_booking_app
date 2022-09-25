@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:measure_size/measure_size.dart';
+import 'package:the_movie_booking_app/data/vos/snack_vo.dart';
 
 import 'package:the_movie_booking_app/viewers/ticket_cancelion_policy_dialog_box_view.dart';
 import 'package:the_movie_booking_app/viewers/ticket_divider_view.dart';
+import '../data/vos/cinema_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/strings.dart';
@@ -12,16 +14,16 @@ import '../widgets/ticket_date_time_location_icon_and_text_view.dart';
 
 class TicketDetailsView extends StatefulWidget {
   final String movieName;
-  final String cinemaName;
+  final CinemaVO? cinema;
   final String date;
   final String startTime;
-  final List<Map<String, dynamic>> foodList;
+  final List<SnackVO> foodList;
  final int totalAmount;
-  final Function(Map<String, dynamic>,int) onTapCancel;
+  final Function(SnackVO,int) onTapCancel;
 
   TicketDetailsView(
     this.movieName,
-    this.cinemaName,
+    this.cinema,
     this.date,
     this.startTime,
     this.foodList,
@@ -59,7 +61,7 @@ class _TicketDetailsViewState extends State<TicketDetailsView> {
             children: [
               MovieAndCinemaInfoView(
                 movieName: widget.movieName,
-                cinemaName: widget.cinemaName,
+                cinema: widget.cinema,
                 startTime: widget.startTime,
                 date: widget.date,
               ),
@@ -209,8 +211,8 @@ class _ConvenienceFeeAndTicketCancellionPolicyViewState
 }
 
 class FoodAndBeverageSectionView extends StatefulWidget {
-  final List<Map<String, dynamic>> foodList;
-  final Function(Map<String, dynamic>,int) onTapCancel;
+  final List<SnackVO>? foodList;
+  final Function(SnackVO,int) onTapCancel;
   FoodAndBeverageSectionView(this.foodList, this.onTapCancel);
 
   @override
@@ -226,10 +228,10 @@ class _FoodAndBeverageSectionViewState
   void initState() {
     super.initState();
     setState(() {
-      for (int i = 0; i < widget.foodList.length; i++) {
+      for (int i = 0; i < (widget.foodList?.length?? 0); i++) {
         total = (total +
-                (widget.foodList.elementAt(i)['price'] *
-                        widget.foodList.elementAt(i)['qty']) *
+                ((widget.foodList?[i].price?? 0) *
+                        (widget.foodList?[i].quantity?? 0)) *
                     1000)
             .toInt();
       }
@@ -289,15 +291,15 @@ class _FoodAndBeverageSectionViewState
               ),
             ),
             children: widget.foodList
-                .map((foods) => CancelFoodAndBeverageView(
-                        foods['name'], foods['price'], foods['qty'], () {
+                ?.map((foods) => CancelFoodAndBeverageView(
+                        foods.name?? "", foods.price?? 0, foods.quantity?? 0, () {
                       setState(() {
-                        widget.foodList.remove(foods);
+                        widget.foodList?.remove(foods);
                         total = 0;
-                        for (int i = 0; i < widget.foodList.length; i++) {
+                        for (int i = 0; i < (widget.foodList?.length?? 0); i++) {
                           total = (total +
-                              (widget.foodList.elementAt(i)['price'] *
-                                  widget.foodList.elementAt(i)['qty'] *
+                              ((widget.foodList?[i].price?? 0) *
+                                  (widget.foodList?[i].quantity?? 0) *
                                   1000))
                               .toInt();
                         }
@@ -305,7 +307,7 @@ class _FoodAndBeverageSectionViewState
                         widget.onTapCancel(foods,total);
                       });
                     }))
-                .toList(),
+                .toList()?? [],
             // iconColor: Colors.white,
             // controlAffinity: ListTileControlAffinity.trailing,
             // children: [
@@ -334,13 +336,13 @@ class MovieAndCinemaInfoView extends StatefulWidget {
   const MovieAndCinemaInfoView({
     Key? key,
     required this.movieName,
-    required this.cinemaName,
+    required this.cinema,
     required this.date,
     required this.startTime,
   }) : super(key: key);
 
   final String movieName;
-  final String cinemaName;
+  final CinemaVO? cinema;
   final String date;
   final String startTime;
 
@@ -369,7 +371,7 @@ class _MovieAndCinemaInfoViewState extends State<MovieAndCinemaInfoView> {
           RichText(
               text: TextSpan(children: [
             TextSpan(
-              text: widget.cinemaName,
+              text: widget.cinema?.name?? "",
               style: const TextStyle(
                 fontWeight: FontWeight.w400,
                 fontSize: TEXT_REGULAR,
@@ -399,7 +401,7 @@ class _MovieAndCinemaInfoViewState extends State<MovieAndCinemaInfoView> {
               const SizedBox(width: MARGIN_xXLARGE),
               TicketDateTimeLocationIconAndTextView(
                 "assets/images/location.png",
-                "Q5H3+JPP, Corner of, Bogyoke Lann, Yangon",
+                widget.cinema?.address?? "",
               ),
             ],
           ),

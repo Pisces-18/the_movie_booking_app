@@ -1,31 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/network/api_constants.dart';
+import '../data/vos/banner_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 
-class BannerView extends StatelessWidget {
+class BannerView extends StatefulWidget {
+  final BannerVO? banner;
+  BannerView(this.banner);
+  @override
+  State<BannerView> createState() => _BannerViewState();
+}
+
+class _BannerViewState extends State<BannerView> {
+
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius:
       const BorderRadius.all(Radius.circular(MARGIN_MEDIUM)),
-      child: Stack(
-        children: const [
-          Positioned.fill(
-            child: BannerImageView(),
-          ),
-          Positioned.fill(
-            child: LinearGradientView(),
-          ),
-          Align(
-            alignment: Alignment.topLeft,
-            child: PromotionTextView(),
-          ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: CardImageView(),
-          )
-        ],
-      ),
+      child: BannerImageView(image: widget.banner?.url?? ""),
     );
   }
 }
@@ -114,13 +108,14 @@ class LinearGradientView extends StatelessWidget {
 
 class BannerImageView extends StatelessWidget {
   const BannerImageView({
-    Key? key,
+    Key? key, required this.image,
   }) : super(key: key);
+  final String image;
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      "assets/images/kfc_censor.png",
+    return Image.network(
+      image,
       fit: BoxFit.cover,
     );
   }

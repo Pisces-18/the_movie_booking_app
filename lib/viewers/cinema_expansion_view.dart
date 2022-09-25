@@ -1,6 +1,8 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
+import '../data/vos/cinema_and_show_time_slots_vo.dart';
+import '../data/vos/cinema_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/strings.dart';
@@ -9,16 +11,18 @@ import '../widgets/cinema_name_and_details_text_view.dart';
 import '../widgets/time_and_available_seat_view.dart';
 
 class CinemaExpansionView extends StatefulWidget {
-  final String? cinemaName;
+  //final String? cinemaName;
   // final bool isVisibilityTimeAndAvailableSeatView;
   //final List<String> cinemaList;
   // final int index;
-  final Function(int,String) onTapTime;
-  final Function(String,String) onTapSeeDetails;
+  final Function(TimeSlotVO?) onTapTime;
+  final Function(String,CinemaVO?) onTapSeeDetails;
   final String location;
-  final List<TimeSlotVO>? timeSlots;
-  CinemaExpansionView(this.cinemaName, this.onTapSeeDetails, this.onTapTime,
-      this.timeSlots, this.location);
+  final List<TimeSlotVO>? cinemaTimeSlots;
+  final CinemaVO? cinema;
+  final List<dynamic>? configList;
+  CinemaExpansionView(this.onTapSeeDetails, this.onTapTime,
+      this.cinemaTimeSlots, this.location,this.cinema,this.configList);
 
   @override
   State<CinemaExpansionView> createState() => _CinemaExpansionViewState();
@@ -32,26 +36,31 @@ class _CinemaExpansionViewState extends State<CinemaExpansionView> {
       children: [
         ExpandablePanel(
           header: ExpandablePanelHeaderSectionView(
-            cinemaName: widget.cinemaName ?? "",
-            onTapSeeDetails: widget.onTapSeeDetails,
+            cinema: widget.cinema,
+            onTapSeeDetails: (location,cinema){
+              setState((){
+                widget.onTapSeeDetails(location,cinema);
+              });
+            },
             location: widget.location,
           ),
           expanded: ExpandablePanelExpandedSectionView(
-            onTapTime: (cinemaDayTimeSlotId,startTime){
+            onTapTime: (cinemaTimeSlot){
               setState((){
-                widget.onTapTime(cinemaDayTimeSlotId,startTime);
+                widget.onTapTime(cinemaTimeSlot);
               });
               //widget.onTapTime(cinemaDayTimeSlotId,startTime);
             },
-            timeSlots: widget.timeSlots ?? [],
+            timeSlots: widget.cinemaTimeSlots?? [],
             location: widget.location,
+            configList: widget.configList,
           ),
           collapsed: Container(),
           theme: const ExpandableThemeData(
             hasIcon: false,
           ),
         ),
-        const SizedBox(height: MARGIN_xXLARGE),
+        const SizedBox(height: MARGIN_MEDIUM_3),
         const Divider(
           color: SMS_CODE_COLOR,
         ),
@@ -65,12 +74,13 @@ class ExpandablePanelExpandedSectionView extends StatefulWidget {
     Key? key,
     required this.onTapTime,
     required this.timeSlots,
-    required this.location,
+    required this.location, this.configList,
   }) : super(key: key);
 
-  final Function(int,String) onTapTime;
+  final Function(TimeSlotVO?) onTapTime;
   final List<TimeSlotVO>? timeSlots;
   final String location;
+  final List<dynamic>? configList;
 
   @override
   State<ExpandablePanelExpandedSectionView> createState() =>
@@ -86,12 +96,12 @@ class _ExpandablePanelExpandedSectionViewState
           top: MARGIN_MEDIUM_3LX,
           left: MARGIN_MEDIUM_2,
           right: MARGIN_MEDIUM_2),
-      child: TimeAndAvailableSeatView(widget.timeSlots,(cinemaDayTimeslotsId,startTime){
+      child: TimeAndAvailableSeatView(widget.timeSlots,(cinemaDayTimeSlot){
         setState((){
-          widget.onTapTime(cinemaDayTimeslotsId,startTime);
+          widget.onTapTime(cinemaDayTimeSlot);
         });
         //widget.onTapTime(cinemaDayTimeslotsId,startTime);
-      }),
+      },widget.configList),
     );
   }
 }
@@ -99,13 +109,13 @@ class _ExpandablePanelExpandedSectionViewState
 class ExpandablePanelHeaderSectionView extends StatefulWidget {
   const ExpandablePanelHeaderSectionView({
     Key? key,
-    required this.cinemaName,
+    required this.cinema,
     required this.onTapSeeDetails,
     required this.location,
   }) : super(key: key);
 
-  final String? cinemaName;
-  final Function(String,String) onTapSeeDetails;
+  final CinemaVO? cinema;
+  final Function(String,CinemaVO?) onTapSeeDetails;
   final String location;
 
   @override
@@ -117,34 +127,44 @@ class _ExpandablePanelHeaderSectionViewState
     extends State<ExpandablePanelHeaderSectionView> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(
-          top: MARGIN_xXLARGE, left: MARGIN_MEDIUM_2, right: MARGIN_MEDIUM_2),
-      child: Column(
-        children: [
-          CinemaNameAndDetailsTextView(widget.cinemaName ?? "",
-              () => widget.onTapSeeDetails(widget.location,widget.cinemaName?? "")),
-          const SizedBox(height: MARGIN_MEDIUM_3L),
-          Row(
-            children: [
-              AvailableServiceIconAndTextView(
-                  "Parking",
-                  "assets/images/parking_icon.png",
-                  AVAILABLE_SERVICE_TEXT_COLOR),
-              const SizedBox(width: MARGIN_MEDIUM_2),
-              AvailableServiceIconAndTextView(
-                  "Online Food",
-                  "assets/images/foodAndBeverage.png",
-                  AVAILABLE_SERVICE_TEXT_COLOR),
-              const SizedBox(width: MARGIN_MEDIUM_2),
-              AvailableServiceIconAndTextView(
-                  "Wheel Chair",
-                  "assets/images/wheel_chair_icon.png",
-                  AVAILABLE_SERVICE_TEXT_COLOR),
-            ],
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.only(
+              top: MARGIN_MEDIUM_3, left: MARGIN_MEDIUM_2, right: MARGIN_MEDIUM_2),
+          child: CinemaNameAndDetailsTextView(widget.cinema?.name?? "",
+              () {
+                setState((){
+                  widget.onTapSeeDetails(widget.location, widget.cinema);
+                });
+              }),
+        ),
+        const SizedBox(height: MARGIN_MEDIUM_3L),
+
+        Wrap(
+          children: widget.cinema?.facilities?.map((facility) => Container(
+              margin: const EdgeInsets.symmetric(horizontal: MARGIN_CARD_MEDIUM_2L_X),
+              child: AvailableServiceIconAndTextView(facility.title?? "", facility.img?? "", AVAILABLE_SERVICE_TEXT_COLOR))).toList()?? [],
+        ),
+        // Row(
+        //   children: [
+        //     AvailableServiceIconAndTextView(
+        //         "Parking",
+        //         "assets/images/parking_icon.png",
+        //         AVAILABLE_SERVICE_TEXT_COLOR),
+        //     const SizedBox(width: MARGIN_MEDIUM_2),
+        //     AvailableServiceIconAndTextView(
+        //         "Online Food",
+        //         "assets/images/foodAndBeverage.png",
+        //         AVAILABLE_SERVICE_TEXT_COLOR),
+        //     const SizedBox(width: MARGIN_MEDIUM_2),
+        //     AvailableServiceIconAndTextView(
+        //         "Wheel Chair",
+        //         "assets/images/wheel_chair_icon.png",
+        //         AVAILABLE_SERVICE_TEXT_COLOR),
+        //   ],
+        // ),
+      ],
     );
   }
 }

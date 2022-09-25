@@ -1,23 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
 import 'package:the_movie_booking_app/pages/home_page.dart';
 import 'package:the_movie_booking_app/pages/ticket_confirmation_page.dart';
+import '../data/vos/cinema_and_show_time_slots_vo.dart';
 import '../data/vos/cinema_vo.dart';
 import '../resources/dimens.dart';
 import '../resources/strings.dart';
 
 class TicketConfirmationSplashScreenPage extends StatefulWidget {
-  //const TicketConfirmationSplashScreenPage({Key? key, required this.location, required this.movieId, required this.cinema, required this.cinemaDayTimeSlotId, required this.startTime, required this.date, required this.seatNo, required this.snackList}) : super(key: key);
+  const TicketConfirmationSplashScreenPage({Key? key, required this.location,required this.cinema}) : super(key: key);
 
   final String location;
-  TicketConfirmationSplashScreenPage(this.location);
-  // final int movieId;
-  // final CinemaVO? cinema;
-  // final int cinemaDayTimeSlotId;
-  // final String startTime;
-  // final String date;
-  // final String seatNo;
-  // final List<Map<String,dynamic>> snackList;
+
+  final CinemaVO? cinema;
+
   @override
   State<TicketConfirmationSplashScreenPage> createState() =>
       _TicketConfirmationSplashScreenPageState();
@@ -25,17 +22,14 @@ class TicketConfirmationSplashScreenPage extends StatefulWidget {
 
 class _TicketConfirmationSplashScreenPageState
     extends State<TicketConfirmationSplashScreenPage> {
+  @override
   void initState() {//Future.delay
     super.initState();
-    Timer(
-      Duration(seconds: 3),
-      () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TicketConfirmationPage(widget.location),
-        ),
-      ),
-    );
+    Future.delayed(const Duration(seconds: 3),(){
+      Navigator.pushReplacement(context, MaterialPageRoute(
+        builder: (context) => TicketConfirmationPage(widget.location,widget.cinema),
+      ),);
+    });
   }
 
   @override

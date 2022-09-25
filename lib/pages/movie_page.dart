@@ -5,6 +5,7 @@ import 'package:the_movie_booking_app/pages/about_movie_page.dart';
 import 'package:the_movie_booking_app/pages/search_movie_page.dart';
 import 'package:the_movie_booking_app/resources/dimens.dart';
 import '../data/models/data_model_impl.dart';
+import '../data/vos/banner_vo.dart';
 import '../data/vos/movie_vo.dart';
 import '../resources/colors.dart';
 import '../resources/germs.dart';
@@ -24,17 +25,27 @@ class MoviePage extends StatefulWidget {
 }
 
 class _MoviePageState extends State<MoviePage> {
-  DataModel mMovieModel=DataModelImpl();
+  DataModel dDataModel=DataModelImpl();
 
   List<MovieVO>? mNowShowingMovieList;
   List<MovieVO>? mComingSoonMovieList;
+  List<BannerVO>? bannerList;
 
   @override
   void initState(){
     super.initState();
 
+    ///Get Banners
+    dDataModel.getBanners()?.then((banners){
+      setState((){
+        bannerList=banners;
+      });
+    }).catchError((error) {
+      debugPrint(error.toString());
+    });
+
     ///NowShowingMovies
-    mMovieModel.getNowPlayingMovies(1)?.then((movieList) {
+    dDataModel.getNowPlayingMovies(1)?.then((movieList) {
       setState(() {
         mNowShowingMovieList = movieList;
         //debugPrint(mNowShowingMovieList?[0].productionCountries?[0].iso31661.toString());
@@ -44,7 +55,7 @@ class _MoviePageState extends State<MoviePage> {
     });
 
     ///ComingSoonMovies
-     mMovieModel.getUpcomingMovies(1)?.then((movieList) {
+     dDataModel.getUpcomingMovies(1)?.then((movieList) {
        setState((){
          mComingSoonMovieList=movieList;
         // debugPrint(mComingSoonMovieList?[0].title.toString());
@@ -119,12 +130,14 @@ class _MoviePageState extends State<MoviePage> {
           child: Column(
             //crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(
+               Padding(
+                padding: const EdgeInsets.only(
                     top: MARGIN_CARD_MEDIUM_2,
                     left: MARGIN_CARD_MEDIUM_2,
                     right: MARGIN_CARD_MEDIUM_2),
-                child: BannerSectionView(),
+                child: (bannerList!=null)?BannerSectionView(bannerList: bannerList,): const Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
               const SizedBox(height: MARGIN_xXLARGE),
               Padding(

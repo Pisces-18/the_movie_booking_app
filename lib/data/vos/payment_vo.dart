@@ -6,14 +6,24 @@ class PaymentVO{
   @JsonKey(name: "id")
   int? id;
 
-  @JsonKey(name: "name")
-  String? name;
+  @JsonKey(name: "title")
+  String? title;
 
-  @JsonKey(name: "description")
-  String? description;
+  @JsonKey(name: "icon")
+  String? icon;
+
+  @JsonKey(name: "created_at")
+  String? createdAt;
+
+  @JsonKey(name: "updated_at")
+  String? updatedAt;
+
+  @JsonKey(name: "deleted_at")
+  String? deletedAt;
 
 
-  PaymentVO(this.id, this.name, this.description);
+  PaymentVO(this.id, this.title, this.icon, this.createdAt, this.updatedAt,
+      this.deletedAt);
 
   factory PaymentVO.fromJson(Map<String,dynamic> json) => _$PaymentVOFromJson(json);
 

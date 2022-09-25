@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../data/models/data_model.dart';
+import '../data/models/data_model_impl.dart';
+import '../data/vos/cinema_and_show_time_slots_vo.dart';
+import '../data/vos/cinema_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/germs.dart';
@@ -8,14 +13,43 @@ import '../widgets/drop_down_list_view.dart';
 import 'choose_seat_page.dart';
 import 'cinema_info_page.dart';
 
-class SearchCinemaPage extends StatelessWidget {
+class SearchCinemaPage extends StatefulWidget {
  final String location;
  SearchCinemaPage(this.location);
+
+  @override
+  State<SearchCinemaPage> createState() => _SearchCinemaPageState();
+}
+
+class _SearchCinemaPageState extends State<SearchCinemaPage> {
   String facilitiesDropDownValue = facilityDropDownItem[0];
 
   String formatDropdownValue = formatDropDownItem[0];
-
+  DataModel dDataModel = DataModelImpl();
+  List<CinemaVO>? cinemaList;
+  List<CinemaAndShowTimeSlotsVO>? cinemaTimeSotsList;
+  String? date;
   @override
+  void initState() {
+    super.initState();
+    DateTime.now();
+    Duration(days: 14);
+
+    dDataModel
+        .getCinemaAndShowTimeByDate(
+        DateFormat('yyyy-MM-dd').format(DateTime.now()))
+        ?.then((timeSlots) {
+      setState(() {
+        cinemaList = DataModelImpl().mCinemaRepository;
+        cinemaTimeSotsList=timeSlots;
+        debugPrint("Cinema Choose ${DataModelImpl().test}");
+        debugPrint(DataModelImpl().mCinemaRepository?[0].name.toString());
+        //debugPrint(cinemaList?[0].timeslots?[0].startTime.toString());
+      });
+    }).catchError((error) {
+      debugPrint(error.toString());
+    });
+  }
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: PAGE_BACKGROUND_COLOR,
@@ -62,9 +96,8 @@ class SearchCinemaPage extends StatelessWidget {
         ],
       ),
       body: Container(
-        height: MediaQuery.of(context).size.height / 1,
-        padding: const EdgeInsets.symmetric(
-            horizontal: MARGIN_MEDIUM_3LX, vertical: MARGIN_MEDIUM),
+        //height: MediaQuery.of(context).size.height / 1,
+
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,30 +109,28 @@ class SearchCinemaPage extends StatelessWidget {
               const SizedBox(height: MARGIN_xXLARGE),
               TimeRangeSectionView(),
               const SizedBox(height: MARGIN_XXXlLARGE),
-              // Column(
-              //     children: cinemaList
-              //         .map(
-              //           (name) => CinemaExpansionView(
-              //               name,
-              //               (location) => _navigateToCinemaInfoPage(context,location),
-              //               (location) => _navigateToChooseSeatPage(context,location),timeAndAvailableSeatData,location),
-              //         )
-              //         .toList()),
+              (cinemaList != null)
+                  ? ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: cinemaList?.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return CinemaExpansionView((location,cinema) => _navigateToCinemaInfoPage(
+                        context, location,cinema), (cinemaDayTimeSlot) =>(){}, cinemaTimeSotsList?[index].timeslots, widget.location, cinemaList?[index],DataModelImpl().mConfigRepository);
+                  })
+                  : const Center(
+                child: CircularProgressIndicator(),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
-  Future<dynamic> _navigateToCinemaInfoPage(BuildContext context, location) =>
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CinemaInfoPage(location,"")));
-
-  // Future<dynamic> _navigateToChooseSeatPage(BuildContext context,String location) {
-  //   return Navigator.push(
-  //       context, MaterialPageRoute(builder: (context) => ChooseSeatPage(location: location,)));
-  // }
+  Future<dynamic> _navigateToCinemaInfoPage(
+      BuildContext context, String location,CinemaVO? cinema) =>
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => CinemaInfoPage(location,cinema)));
 }
 
 class TimeRangeSectionView extends StatefulWidget {
@@ -111,63 +142,67 @@ class TimeRangeSectionViewState extends State<TimeRangeSectionView> {
   RangeValues _currentRangeValues = const RangeValues(8, 12);
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          PRICE_RANGE_TEXT,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: TEXT_REGULAR,
-            color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: MARGIN_MEDIUM_2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            PRICE_RANGE_TEXT,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: TEXT_REGULAR,
+              color: Colors.white,
+            ),
           ),
-        ),
-        const SizedBox(height: MARGIN_MEDIUM_3),
-        Row(
-          children: const [
-            Text(
-              "8am",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: TEXT_REGULAR,
-                color: SMS_CODE_COLOR,
+          const SizedBox(height: MARGIN_MEDIUM_3),
+          Row(
+            children: const [
+              Text(
+                "8am",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: TEXT_REGULAR,
+                  color: SMS_CODE_COLOR,
+                ),
+              ),
+              Spacer(),
+              Text(
+                "12pm",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: TEXT_REGULAR,
+                  color: SMS_CODE_COLOR,
+                ),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: const SliderThemeData(
+              thumbColor: PRIMARY_COLOR_1,
+              inactiveTrackColor: SMS_CODE_COLOR,
+              activeTrackColor: PRIMARY_COLOR_1,
+              activeTickMarkColor: PRIMARY_COLOR_1,
+              trackHeight: 1,
+            ),
+            child: RangeSlider(
+              values: _currentRangeValues,
+              min: 8,
+              max: 12,
+              onChanged: (RangeValues values) {
+                setState(() {
+                  _currentRangeValues = values;
+                });
+              },
+              labels: RangeLabels(
+                _currentRangeValues.start.round().toString(),
+                _currentRangeValues.end.round().toString(),
               ),
             ),
-            Spacer(),
-            Text(
-              "12pm",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: TEXT_REGULAR,
-                color: SMS_CODE_COLOR,
-              ),
-            ),
-          ],
-        ),
-        SliderTheme(
-          data: const SliderThemeData(
-            thumbColor: PRIMARY_COLOR_1,
-            inactiveTrackColor: SMS_CODE_COLOR,
-            activeTrackColor: PRIMARY_COLOR_1,
-            activeTickMarkColor: PRIMARY_COLOR_1,
-            trackHeight: 1,
           ),
-          child: RangeSlider(
-            values: _currentRangeValues,
-            min: 8,
-            max: 12,
-            onChanged: (RangeValues values) {
-              setState(() {
-                _currentRangeValues = values;
-              });
-            },
-            labels: RangeLabels(
-              _currentRangeValues.start.round().toString(),
-              _currentRangeValues.end.round().toString(),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -187,12 +222,16 @@ class CinemaSearchTypeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        DropDownListView(dropdownValue, facilityList),
-        const SizedBox(width: MARGIN_MEDIUM_X),
-        DropDownListView(dropdownValue1, formatList),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: MARGIN_MEDIUM_2, vertical: MARGIN_MEDIUM),
+      child: Row(
+        children: [
+          DropDownListView(dropdownValue, facilityList),
+          const SizedBox(width: MARGIN_MEDIUM_X),
+          DropDownListView(dropdownValue1, formatList),
+        ],
+      ),
     );
   }
 }
@@ -206,63 +245,67 @@ class _PriceRangeSectionViewState extends State<PriceRangeSectionView> {
   RangeValues _currentRangeValues = const RangeValues(3500, 23000);
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          PRICE_RANGE_TEXT,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: TEXT_REGULAR,
-            color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: MARGIN_MEDIUM_2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            PRICE_RANGE_TEXT,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: TEXT_REGULAR,
+              color: Colors.white,
+            ),
           ),
-        ),
-        const SizedBox(height: MARGIN_MEDIUM_3),
-        Row(
-          children: const [
-            Text(
-              "3500Ks",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: TEXT_REGULAR,
-                color: SMS_CODE_COLOR,
+          const SizedBox(height: MARGIN_MEDIUM_3),
+          Row(
+            children: const [
+              Text(
+                "3500Ks",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: TEXT_REGULAR,
+                  color: SMS_CODE_COLOR,
+                ),
+              ),
+              Spacer(),
+              Text(
+                "29500Ks",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: TEXT_REGULAR,
+                  color: SMS_CODE_COLOR,
+                ),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: const SliderThemeData(
+              thumbColor: PRIMARY_COLOR_1,
+              inactiveTrackColor: SMS_CODE_COLOR,
+              activeTrackColor: PRIMARY_COLOR_1,
+              activeTickMarkColor: PRIMARY_COLOR_1,
+              trackHeight: 1,
+            ),
+            child: RangeSlider(
+              values: _currentRangeValues,
+              min: 3500,
+              max: 29500,
+              onChanged: (RangeValues values) {
+                setState(() {
+                  _currentRangeValues = values;
+                });
+              },
+              labels: RangeLabels(
+                _currentRangeValues.start.round().toString(),
+                _currentRangeValues.end.round().toString(),
               ),
             ),
-            Spacer(),
-            Text(
-              "29500Ks",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: TEXT_REGULAR,
-                color: SMS_CODE_COLOR,
-              ),
-            ),
-          ],
-        ),
-        SliderTheme(
-          data: const SliderThemeData(
-            thumbColor: PRIMARY_COLOR_1,
-            inactiveTrackColor: SMS_CODE_COLOR,
-            activeTrackColor: PRIMARY_COLOR_1,
-            activeTickMarkColor: PRIMARY_COLOR_1,
-            trackHeight: 1,
           ),
-          child: RangeSlider(
-            values: _currentRangeValues,
-            min: 3500,
-            max: 29500,
-            onChanged: (RangeValues values) {
-              setState(() {
-                _currentRangeValues = values;
-              });
-            },
-            labels: RangeLabels(
-              _currentRangeValues.start.round().toString(),
-              _currentRangeValues.end.round().toString(),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

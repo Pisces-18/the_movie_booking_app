@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/http.dart';
 import 'package:the_movie_booking_app/network/api_constants.dart';
-import 'package:the_movie_booking_app/network/responses/get_cinema_day_timeslots_response.dart';
+import 'package:the_movie_booking_app/network/responses/get_cinema_and_show_time_by_date_response.dart';
 import 'package:the_movie_booking_app/network/responses/get_credits_by_movie_response.dart';
 import 'package:the_movie_booking_app/network/responses/movie_list_response.dart';
 

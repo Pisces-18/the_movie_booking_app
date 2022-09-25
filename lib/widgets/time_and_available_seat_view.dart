@@ -7,8 +7,9 @@ import 'available_timing_view.dart';
 
 class TimeAndAvailableSeatView extends StatefulWidget {
   final List<TimeSlotVO>? timeSlots;
-  final Function(int, String) onTapTime;
-  TimeAndAvailableSeatView(this.timeSlots, this.onTapTime);
+  final Function(TimeSlotVO?) onTapTime;
+  final List<dynamic>? configList;
+  TimeAndAvailableSeatView(this.timeSlots, this.onTapTime, this.configList);
 
   @override
   State<TimeAndAvailableSeatView> createState() =>
@@ -17,7 +18,40 @@ class TimeAndAvailableSeatView extends StatefulWidget {
 
 class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
   int? selectedTimeSlotId;
+
+  late Color availableColor;
+  late Color fillingFastColor;
+  late Color almostFullColor;
+
+  int? availableId;
+  int? fillingFastId;
+  int? almostFullId;
+
   @override
+  void initState() {
+    super.initState();
+
+      availableColor = Color(
+          int.parse("0XFF${(widget.configList?[0]['color']).substring(1, 7)}"));
+      fillingFastColor = Color(
+          int.parse("0XFF${(widget.configList?[1]['color']).substring(1, 7)}"));
+      almostFullColor = Color(
+          int.parse("0XFF${(widget.configList?[2]['color']).substring(1, 7)}"));
+
+      availableId = widget.configList?[0]['id'];
+      fillingFastId = widget.configList?[1]['id'];
+      almostFullId = widget.configList?[2]['id'];
+
+
+    debugPrint("Config${widget.configList?[0]['id']}");
+    //debugPrint("Time${widget.timeSlots?[0].status}");
+    // if (widget.configList?[0]['id'] == widget.timeSlots?[0].status) {
+    //   debugPrint("Config${widget.configList?[0]['id']}");
+    // } else {
+    //   debugPrint("Time${widget.timeSlots?[0].status}");
+    // }
+  }
+
   Widget build(BuildContext context) {
     return Container(
       // width: MediaQuery.of(context).size.width / 1,
@@ -36,11 +70,11 @@ class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
                   onTap: () {
-                    setState((){
-                      selectedTimeSlotId=widget.timeSlots?[index].cinemaDayTimeslotsId;
+                    setState(() {
+                      // selectedTimeSlotId=widget.timeSlots?[index].cinemaDayTimeslotsId;
+                      debugPrint("Status===>${widget.timeSlots?[index].status}");
                       widget.onTapTime(
-                          widget.timeSlots?[index].cinemaDayTimeslotsId ?? 0,
-                          widget.timeSlots?[index].startTime ?? "");
+                          widget.timeSlots?[index]);
                     });
                   },
                   child: Container(
@@ -50,10 +84,20 @@ class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
                         horizontal: MARGIN_CARD_MEDIUM_2L_X,
                         vertical: MARGIN_MEDIUM),
                     decoration: BoxDecoration(
-                      color: (selectedTimeSlotId==widget.timeSlots?[index].cinemaDayTimeslotsId)? AVAILABLE_BACKGROUND_COLOR:PRIMARY_COLOR_3,
+                      color: PRIMARY_COLOR_3,
                       borderRadius: BorderRadius.circular(MARGIN_SMALL),
                       border: Border.all(
-                        color: (selectedTimeSlotId==widget.timeSlots?[index].cinemaDayTimeslotsId)? AVAILABLE_COLOR:SMS_CODE_COLOR,
+                        color: (availableId ==
+                            widget.timeSlots?[index].status)
+                            ? availableColor
+                            : (fillingFastId ==
+                            widget.timeSlots?[index].status)
+                            ? fillingFastColor
+                            : (almostFullId ==
+                            widget.timeSlots?[index]
+                                .status)
+                            ? almostFullColor
+                            : SMS_CODE_COLOR,
                       ),
                     ),
                     child: Center(
@@ -62,10 +106,14 @@ class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
                         children: [
                           Text(
                             widget.timeSlots?[index].startTime ?? "",
-                            style:  TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: TEXT_REGULAR,
-                              color: (selectedTimeSlotId==widget.timeSlots?[index].cinemaDayTimeslotsId)? Colors.white:SMS_CODE_COLOR,
+                              color: (selectedTimeSlotId ==
+                                      widget.timeSlots?[index]
+                                          .cinemaDayTimeslotsId)
+                                  ? Colors.white
+                                  : SMS_CODE_COLOR,
                             ),
                           ),
                           const SizedBox(height: MARGIN_SMALL_L),
@@ -74,7 +122,11 @@ class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: TEXT_SMALL,
-                              color: (selectedTimeSlotId==widget.timeSlots?[index].cinemaDayTimeslotsId)? Colors.white:SMS_CODE_COLOR,
+                              color: (selectedTimeSlotId ==
+                                      widget.timeSlots?[index]
+                                          .cinemaDayTimeslotsId)
+                                  ? Colors.white
+                                  : SMS_CODE_COLOR,
                             ),
                           ),
                           const SizedBox(height: MARGIN_SMALL_L),
@@ -83,7 +135,11 @@ class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: TEXT_SMALL,
-                              color: (selectedTimeSlotId==widget.timeSlots?[index].cinemaDayTimeslotsId)? Colors.white:SMS_CODE_COLOR,
+                              color: (selectedTimeSlotId ==
+                                      widget.timeSlots?[index]
+                                          .cinemaDayTimeslotsId)
+                                  ? Colors.white
+                                  : SMS_CODE_COLOR,
                             ),
                           ),
                           const SizedBox(height: MARGIN_SMALL_L),
@@ -92,7 +148,11 @@ class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: TEXT_SMALL,
-                              color: (selectedTimeSlotId==widget.timeSlots?[index].cinemaDayTimeslotsId)? Colors.white:SMS_CODE_COLOR,
+                              color: (selectedTimeSlotId ==
+                                      widget.timeSlots?[index]
+                                          .cinemaDayTimeslotsId)
+                                  ? Colors.white
+                                  : SMS_CODE_COLOR,
                             ),
                           ),
                         ],

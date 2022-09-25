@@ -4,11 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:the_movie_booking_app/data/models/data_model.dart';
 import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
 import 'package:the_movie_booking_app/data/vos/actor_vo.dart';
-import 'package:the_movie_booking_app/data/vos/base_actor_vo.dart';
 import 'package:the_movie_booking_app/network/api_constants.dart';
 import 'package:the_movie_booking_app/pages/choose_time_and_cinema_page.dart';
 import 'package:the_movie_booking_app/resources/dimens.dart';
-import '../data/vos/credit_vo.dart';
 import '../data/vos/movie_vo.dart';
 import '../resources/colors.dart';
 import '../resources/germs.dart';
@@ -37,7 +35,6 @@ class _AboutMoviePageState extends State<AboutMoviePage> {
   @override
   void initState() {
     super.initState();
-
     ///Get Movie Details
     mMovieModel.getMovieDetails(widget.movieId)?.then((movie) {
       setState(() {
@@ -64,32 +61,32 @@ class _AboutMoviePageState extends State<AboutMoviePage> {
         padding: const EdgeInsets.symmetric(vertical: MARGIN_LARGE),
         child: (mMovie != null)
             ? SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    MovieInfoView(
-                      mMovie: mMovie,
-                    ),
-                    const SizedBox(height: MARGIN_MEDIUM_2),
-                    CensorDateDurationSectionView(mMovie),
-                    ReleaseDateNotificationView(
-                        widget.isNotificationAndBookingVisibility),
-                    const SizedBox(height: MARGIN_xXLARGE),
-                    StoryLineSectionView(mMovie?.overview ?? ""),
-                    const SizedBox(height: MARGIN_xXLARGE),
-                    CastSectionView(actorList: actorList)
-                  ],
-                ),
-              )
-            : const Center(
-                child: CircularProgressIndicator(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MovieInfoView(
+                mMovie: mMovie,
               ),
+              const SizedBox(height: MARGIN_MEDIUM_2),
+              CensorDateDurationSectionView(mMovie),
+              ReleaseDateNotificationView(
+                  widget.isNotificationAndBookingVisibility),
+              const SizedBox(height: MARGIN_xXLARGE),
+              StoryLineSectionView(mMovie?.overview ?? ""),
+              const SizedBox(height: MARGIN_xXLARGE),
+              CastSectionView(actorList: actorList)
+            ],
+          ),
+        )
+            : const Center(
+          child: CircularProgressIndicator(),
+        ),
       ),
       floatingActionButton: Visibility(
         visible: !widget.isNotificationAndBookingVisibility,
         child: BookingButtonView(
-          () => _navigateToChooseTimeAndCinemaPage(context, widget.location,widget.movieId),
+              () => _navigateToChooseTimeAndCinemaPage(context, widget.location,widget.movieId),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -300,7 +297,7 @@ class _MovieInfoViewState extends State<MovieInfoView> {
           Align(
             alignment: Alignment.bottomLeft,
             child:
-                MovieImageView("$IMAGE_BASE_URL${widget.mMovie?.posterPath}"),
+            MovieImageView("$IMAGE_BASE_URL${widget.mMovie?.posterPath}"),
           ),
         ],
       ),
@@ -344,8 +341,8 @@ class MovieGenreInfoView extends StatelessWidget {
           const SizedBox(height: MARGIN_MEDIUM_2X),
           Wrap(
             children: movieTypeList
-                    ?.map((type) => MovieTypeChipView(type))
-                    .toList() ??
+                ?.map((type) => MovieTypeChipView(type))
+                .toList() ??
                 [],
           ),
         ],
@@ -429,7 +426,7 @@ class MovieImageView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding:
-          const EdgeInsets.only(left: MARGIN_MEDIUM_2x, bottom: MARGIN_CARD_MEDIUM_2L_X),
+      const EdgeInsets.only(left: MARGIN_MEDIUM_2x, bottom: MARGIN_CARD_MEDIUM_2L_X),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(MARGIN_SMALL),
         child: Image.network(
@@ -560,13 +557,13 @@ class CastSectionView extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                ABOUT_MOVIE_CAST_GRADIENT_COLOR_1,
-                ABOUT_MOVIE_CAST_GRADIENT_COLOR_2,
-              ])),
+                    ABOUT_MOVIE_CAST_GRADIENT_COLOR_1,
+                    ABOUT_MOVIE_CAST_GRADIENT_COLOR_2,
+                  ])),
           height: ABOUT_MOVIE_CAST_LISTVIEW_HEIGHT,
           child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: 7,
+              itemCount: actorList?.length,
               itemBuilder: (BuildContext context, int index) {
                 return CasterView(actor: actorList?[index]);
               }),
@@ -722,11 +719,11 @@ class CensorDateDurationSectionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String month =
-        DateFormat.MMM().format(DateTime.parse(mMovie?.releaseDate ?? ""));
+    DateFormat.MMM().format(DateTime.parse(mMovie?.releaseDate ?? ""));
     String day =
-        DateFormat.d().format(DateTime.parse(mMovie?.releaseDate ?? ""));
+    DateFormat.d().format(DateTime.parse(mMovie?.releaseDate ?? ""));
     String year =
-        DateFormat.y().format(DateTime.parse(mMovie?.releaseDate ?? ""));
+    DateFormat.y().format(DateTime.parse(mMovie?.releaseDate ?? ""));
     int time = mMovie?.runtime ?? 0;
     int hour = time ~/ 60;
     int minute = (time - hour * 60);
@@ -736,7 +733,7 @@ class CensorDateDurationSectionView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CensorDateDurationView(CENSOR_RATING_TEXT,
-              mMovie?.productionCountries?.first.iso31661 ?? ""),
+              "U/A"),
           CensorDateDurationView(RELEASE_DATE_TEXT, "$month ${day}th, $year"),
           CensorDateDurationView(DURATION_TEXT, "${hour}hr ${minute}min"),
         ],

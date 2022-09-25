@@ -4,7 +4,7 @@ import '../resources/colors.dart';
 import '../resources/dimens.dart';
 
 class PaymentTypeView extends StatelessWidget {
-  final Function onTapPayment;
+  final Function(int) onTapPayment;
   final PaymentVO? payment;
 
   PaymentTypeView(
@@ -38,15 +38,15 @@ class PaymentTypeView extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Image.asset(
-                //   "${payment.elementAt(index)['logo']}",
-                //   color: Colors.white,
-                //   width: MARGIN_LARGE,
-                //   height: MARGIN_LARGE,
-                // ),
+                Image.network(
+                  payment?.icon?? "",
+                  color: Colors.white,
+                  width: MARGIN_LARGE,
+                  height: MARGIN_LARGE,
+                ),
                 const SizedBox(width: MARGIN_MEDIUM_X),
                 Text(
-                  payment?.name?? "",
+                  payment?.title?? "",
                   style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: TEXT_REGULAR_2Xx,
@@ -54,7 +54,7 @@ class PaymentTypeView extends StatelessWidget {
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: ()=>onTapPayment(),
+                  onTap: ()=>onTapPayment(payment?.id?? 0),
                   child: Image.asset(
                     "assets/images/right_arrow.png",
                     color: Colors.white,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
+import '../data/vos/cinema_and_show_time_slots_vo.dart';
 import '../data/vos/cinema_vo.dart';
 import '../pages/food_and_beverage_all_page.dart';
 import '../resources/colors.dart';
@@ -9,12 +11,11 @@ class BuyTicketDialogBoxView extends StatefulWidget {
   final String location;
   final int movieId;
   final CinemaVO? cinema;
-  final int cinemaDayTimeSlotId;
-  final String startTime;
+  final TimeSlotVO? cinemaDayTimeSlot;
   final String date;
   final String seatNo;
   BuyTicketDialogBoxView(this.location, this.movieId, this.cinema,
-      this.cinemaDayTimeSlotId,this.startTime, this.date,this.seatNo);
+      this.cinemaDayTimeSlot, this.date,this.seatNo);
 
   @override
   State<BuyTicketDialogBoxView> createState() => _BuyTicketDialogBoxViewState();
@@ -78,8 +79,7 @@ class _BuyTicketDialogBoxViewState extends State<BuyTicketDialogBoxView> {
                           widget.location,
                           widget.movieId,
                           widget.cinema,
-                          widget.cinemaDayTimeSlotId,
-                          widget.startTime,
+                          widget.cinemaDayTimeSlot,
                           widget.date,
                       widget.seatNo)),
                 ],
@@ -96,8 +96,7 @@ class _BuyTicketDialogBoxViewState extends State<BuyTicketDialogBoxView> {
           String location,
           int movieId,
           CinemaVO? cinema,
-          int cinemaDayTimeSlotId,
-          String startTime,
+          TimeSlotVO? cinemaDayTimeSlot,
           String date,
       String seatNo) =>
       Navigator.push(
@@ -107,8 +106,7 @@ class _BuyTicketDialogBoxViewState extends State<BuyTicketDialogBoxView> {
                   location,
                   movieId,
                   cinema,
-                  cinemaDayTimeSlotId,
-                  startTime,
+                  cinemaDayTimeSlot,
                   date,
               seatNo)));
 }

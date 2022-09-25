@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:the_movie_booking_app/data/models/data_model.dart';
+import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
 import 'package:the_movie_booking_app/pages/cinema_page.dart';
 import 'package:the_movie_booking_app/pages/movie_page.dart';
 import 'package:the_movie_booking_app/pages/profile_page.dart';
@@ -22,13 +24,17 @@ class _HomePageState extends State<HomePage> {
   String? location;
   int _selectedIndex = 0;
   final PageController _myPage = PageController(initialPage: 0);
+  DataModel dDataModel=DataModelImpl();
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _myPage = PageController(initialPage: 0);
-  //
-  // }
+  @override
+  void initState() {
+    super.initState();
+    setState((){
+      dDataModel.getSnackCategory();
+      debugPrint(DataModelImpl().mSnackCategoryRepository?[0].title);
+    });
+
+  }
 
   @override
   Widget build(BuildContext context) {

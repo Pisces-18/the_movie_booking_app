@@ -12,7 +12,7 @@ class AvailableServiceIconAndTextView extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(image,color: changedColor,width: MARGIN_LARGE,height: MARGIN_LARGE,),
+        Image.network(image,color: changedColor,width: MARGIN_LARGE,height: MARGIN_LARGE,),
         const SizedBox(width: MARGIN_SMALL_Lx),
         Text(
           text,
@@ -21,7 +21,8 @@ class AvailableServiceIconAndTextView extends StatelessWidget {
             fontSize: TEXT_REGULAR,
             color: changedColor,
           ),
-        )
+        ),
+        const SizedBox(width: MARGIN_MEDIUM_2),
       ],
     );
   }

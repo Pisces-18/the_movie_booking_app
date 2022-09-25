@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'base_actor_vo.dart';
-import 'movie_vo.dart';
+
 
 part 'actor_vo.g.dart';
 

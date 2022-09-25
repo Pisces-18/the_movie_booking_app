@@ -1,15 +1,25 @@
+import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/vos/facility_vo.dart';
 import 'package:the_movie_booking_app/resources/colors.dart';
+import 'package:video_player/video_player.dart';
 
+import '../data/vos/cinema_vo.dart';
 import '../resources/dimens.dart';
 import '../resources/germs.dart';
 import '../resources/strings.dart';
 import '../widgets/available_service_icon_and_text_view.dart';
 
-class CinemaInfoPage extends StatelessWidget {
+class CinemaInfoPage extends StatefulWidget {
   final String location;
-  final String cinemaName;
-  CinemaInfoPage(this.location, this.cinemaName);
+  final CinemaVO? cinema;
+  CinemaInfoPage(this.location, this.cinema);
+
+  @override
+  State<CinemaInfoPage> createState() => _CinemaInfoPageState();
+}
+
+class _CinemaInfoPageState extends State<CinemaInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,18 +63,18 @@ class CinemaInfoPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              cinemaVideoView(),
+              cinemaVideoView(widget.cinema?.promoVdoUrl?? ""),
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: MARGIN_MEDIUM_2, vertical: MARGIN_xLARGE),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CinemaNameAndLocationView(cinemaName),
+                    CinemaNameAndLocationView(widget.cinema?.name?? "",widget.cinema?.address?? ""),
                     const SizedBox(height: MARGIN_XXLARGE),
-                    FacilitiesSectionView(facilityList),
+                    FacilitiesSectionView(widget.cinema?.facilities),
                     const SizedBox(height: MARGIN_XXLARGE),
-                    SafetySectionView(safetyList: safetyList)
+                    SafetySectionView(safetyList: widget.cinema?.safety)
                   ],
                 ),
               )
@@ -74,6 +84,7 @@ class CinemaInfoPage extends StatelessWidget {
       ),
     );
   }
+
 }
 
 class SafetySectionView extends StatelessWidget {
@@ -82,7 +93,7 @@ class SafetySectionView extends StatelessWidget {
     required this.safetyList,
   }) : super(key: key);
 
-  final List<String> safetyList;
+  final List<String>? safetyList;
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +114,7 @@ class SafetySectionView extends StatelessWidget {
           child: Wrap(
             spacing: MARGIN_SMALL_L,
             runSpacing: MARGIN_CARD_MEDIUM_2,
-            children: safetyList.map((type) => SafetyTypeView(type)).toList(),
+            children: safetyList?.map((type) => SafetyTypeView(type)).toList()?? [],
           ),
         )
       ],
@@ -137,9 +148,15 @@ class SafetyTypeView extends StatelessWidget {
   }
 }
 
-class FacilitiesSectionView extends StatelessWidget {
-  final List<Map<String, dynamic>> facilityList;
+class FacilitiesSectionView extends StatefulWidget {
+  final List<FacilityVO>?facilityList;
   FacilitiesSectionView(this.facilityList);
+
+  @override
+  State<FacilitiesSectionView> createState() => _FacilitiesSectionViewState();
+}
+
+class _FacilitiesSectionViewState extends State<FacilitiesSectionView> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -156,18 +173,24 @@ class FacilitiesSectionView extends StatelessWidget {
         const SizedBox(height: MARGIN_MEDIUM_2),
         Wrap(
           runSpacing: MARGIN_MEDIUM_2x,
-          spacing: MARGIN_CARD_MEDIUM_2L_X,
-          children: [
-            AvailableServiceIconAndTextView(
-                "Parking", "assets/images/parking_icon.png", PRIMARY_COLOR_1),
-            AvailableServiceIconAndTextView("Online Food",
-                "assets/images/foodAndBeverage.png", PRIMARY_COLOR_1),
-            AvailableServiceIconAndTextView("Wheel Chair",
-                "assets/images/wheel_chair_icon.png", PRIMARY_COLOR_1),
-            AvailableServiceIconAndTextView("Ticket Cancelation",
-                "assets/images/ticketCancelationIcon.png", PRIMARY_COLOR_1),
-          ],
-        ),
+            spacing: MARGIN_CARD_MEDIUM_2L_X,
+          children: widget.facilityList?.map((facility) => AvailableServiceIconAndTextView(facility.title?? "", facility.img?? "",PRIMARY_COLOR_1)).toList()?? [],
+        )
+
+        // Wrap(
+        //   runSpacing: MARGIN_MEDIUM_2x,
+        //   spacing: MARGIN_CARD_MEDIUM_2L_X,
+        //   children: [
+        //     AvailableServiceIconAndTextView(
+        //         "Parking", "assets/images/parking_icon.png", PRIMARY_COLOR_1),
+        //     AvailableServiceIconAndTextView("Online Food",
+        //         "assets/images/foodAndBeverage.png", PRIMARY_COLOR_1),
+        //     AvailableServiceIconAndTextView("Wheel Chair",
+        //         "assets/images/wheel_chair_icon.png", PRIMARY_COLOR_1),
+        //     AvailableServiceIconAndTextView("Ticket Cancelation",
+        //         "assets/images/ticketCancelationIcon.png", PRIMARY_COLOR_1),
+        //   ],
+        // ),
       ],
     );
   }
@@ -175,7 +198,8 @@ class FacilitiesSectionView extends StatelessWidget {
 
 class CinemaNameAndLocationView extends StatelessWidget {
   final String cinemaName;
-  CinemaNameAndLocationView(this.cinemaName);
+  final String cinemaLocation;
+  CinemaNameAndLocationView(this.cinemaName,this.cinemaLocation);
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -192,10 +216,10 @@ class CinemaNameAndLocationView extends StatelessWidget {
         const SizedBox(height: MARGIN_CARD_MEDIUM_2L_X),
         Row(
           children: [
-            const Flexible(
+             Flexible(
               child: Text(
-                "Q5H3+JPP, Corner of, Bogyoke Lann, Yangon ",
-                style: TextStyle(
+                cinemaLocation,
+                style: const TextStyle(
                   overflow: TextOverflow.visible,
                   fontWeight: FontWeight.w600,
                   fontSize: TEXT_REGULAR_2Xx,
@@ -212,24 +236,31 @@ class CinemaNameAndLocationView extends StatelessWidget {
   }
 }
 
-class cinemaVideoView extends StatelessWidget {
+class cinemaVideoView extends StatefulWidget {
+  final String videoUrl;
+  cinemaVideoView(this.videoUrl);
   @override
+  State<cinemaVideoView> createState() => _cinemaVideoViewState();
+}
+
+class _cinemaVideoViewState extends State<cinemaVideoView> {
+  FlickManager? flickManager;
+  @override
+  void initState(){
+    super.initState();
+    flickManager=FlickManager(videoPlayerController: VideoPlayerController.network(widget.videoUrl));
+  }
+
+  @override
+  void dispose(){
+    flickManager?.dispose();
+    super.dispose();
+  }
   Widget build(BuildContext context) {
     return Container(
       height: CINEMA_INFO_IMAGE_HEIGHT,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              "assets/images/cinemaDetailsImage.png",
-              fit: BoxFit.cover,
-            ),
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: Image.asset("assets/images/playButton.png"),
-          )
-        ],
+      child: FlickVideoPlayer(
+        flickManager: flickManager!,
       ),
     );
   }

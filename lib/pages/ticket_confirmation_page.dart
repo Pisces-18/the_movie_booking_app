@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/vos/check_out_vo.dart';
+import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
 import 'package:the_movie_booking_app/network/api_constants.dart';
 import 'package:the_movie_booking_app/pages/home_page.dart';
 import 'package:the_movie_booking_app/pages/movie_page.dart';
 import '../data/models/data_model.dart';
 import '../data/models/data_model_impl.dart';
+import '../data/vos/cinema_and_show_time_slots_vo.dart';
 import '../data/vos/cinema_vo.dart';
 import '../data/vos/movie_vo.dart';
+import '../data/vos/snack_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/germs.dart';
@@ -15,15 +19,10 @@ import '../viewers/ticket_info_view.dart';
 class TicketConfirmationPage extends StatefulWidget {
   //late Function onTapTicket;
   final String location;
-  // final int movieId;
-  // final CinemaVO? cinema;
-  // final int cinemaDayTimeSlotId;
-  // final String startTime;
-  // final String date;
-  // final String seatNo;
-  // final List<Map<String,dynamic>> snackList;
-  //TicketConfirmationPage(this.location,this.movieId,this.cinema,this.cinemaDayTimeSlotId,this.startTime,this.date,this.seatNo,this.snackList);
-  TicketConfirmationPage(this.location);
+  final CinemaVO? cinema;
+
+  TicketConfirmationPage(this.location,this.cinema);
+  //TicketConfirmationPage(this.location);
   @override
   State<TicketConfirmationPage> createState() => _TicketConfirmationPageState();
 }
@@ -31,22 +30,31 @@ class TicketConfirmationPage extends StatefulWidget {
 class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
   DataModel dDataModel = DataModelImpl();
 
-  // CinemaVO? cinema;
+
   MovieVO? mMovie;
-  int? movieId;
-  CinemaVO? cinema;
-  int? cinemaDayTimeSlotId;
-  String? startTime;
-  String? date;
-  String? seatNo;
-  List<Map<String, dynamic>>? snackList;
+  List<SnackVO>? snackVO;
+  CheckOutVO? checkoutData;
 
   @override
   void initState() {
     super.initState();
 
+    // debugPrint(cinema?.name.toString());
+    // debugPrint(cinemaDayTimeSlotId.toString());
+    // debugPrint(date);
+    // debugPrint(snackList.toString());
+    // dDataModel.postCheckout("SSDK", widget.cinemaTimeSlot?.cinemaDayTimeslotsId?? 0, "G-6", widget.date, widget.movieId, widget.paymentId, [SnackVO(1, "Beverage", "", 1000, 123, "", 1, 2, 2000),SnackVO(1, "Beverage", "", 1000, 123, "", 1, 2, 2000)])?.then((checkout) {
+    //   setState((){
+    //     checkoutData=checkout;
+    //     debugPrint("MovieId Id${checkoutData?.movieId}");
+    //   });
+    // }).catchError((error){
+    //   debugPrint("Confirmation error$error");
+    // });
+    debugPrint("Movie Id ${DataModelImpl().mCheckOutRepository?.movieId}");
+    checkoutData=DataModelImpl().mCheckOutRepository;
     ///Get Movie
-    dDataModel.getMovieDetails(movieId?? 817451)?.then((movie) {
+    dDataModel.getMovieDetails(checkoutData?.movieId?? 0)?.then((movie) {
       setState(() {
         mMovie = movie;
         debugPrint(mMovie?.title.toString());
@@ -54,12 +62,10 @@ class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
     }).catchError((error) {
       debugPrint(error.toString());
     });
-    debugPrint(cinema?.cinema.toString());
-    debugPrint(cinemaDayTimeSlotId.toString());
-    debugPrint(date);
-    debugPrint(snackList.toString());
+
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: PAGE_BACKGROUND_COLOR,
@@ -83,16 +89,9 @@ class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
                 ),
                 child: Column(
                   children: [
-                    TicketInfoView(
-                        () => this,
-                        "$IMAGE_BASE_URL${mMovie?.posterPath}",
-                        mMovie?.title ?? "",
-                        cinema?.cinema ?? "",
-                        seatNo?? "G8",
-                        date?? DateTime.now().toString(),
-                        startTime?? ""),
+                    TicketInfoView(mMovie,widget.cinema,checkoutData,()=>this),
                     SizedBox(height: MediaQuery.of(context).size.height / 10),
-                    QrAndPinView(),
+                    QrAndPinView(checkoutData?.qrCode?.substring(7)?? ""),
                     SizedBox(height: MediaQuery.of(context).size.height / 12),
                     DoneButtonView(widget.location)
                   ],
@@ -127,7 +126,14 @@ class DoneButtonView extends StatelessWidget {
   }
 }
 
-class QrAndPinView extends StatelessWidget {
+class QrAndPinView extends StatefulWidget {
+  final String image;
+  QrAndPinView(this.image);
+  @override
+  State<QrAndPinView> createState() => _QrAndPinViewState();
+}
+
+class _QrAndPinViewState extends State<QrAndPinView> {
   @override
   Widget build(BuildContext context) {
     return Image.asset(
