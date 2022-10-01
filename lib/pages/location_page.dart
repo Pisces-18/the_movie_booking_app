@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:the_movie_booking_app/data/models/data_model.dart';
 import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
@@ -31,6 +32,17 @@ class _LocationPageState extends State<LocationPage> {
     }).catchError((error) {
       debugPrint("Errors====>$error");
     });
+  }
+
+  _showToast(String msg) {
+    showToast(
+      msg,
+      context: context,
+      duration: const Duration(seconds: 3),
+      animation: StyledToastAnimation.slideToRightFade,
+      position: StyledToastPosition.bottom,
+      backgroundColor: Colors.grey,
+    );
   }
 
   Widget build(BuildContext context) {
@@ -72,12 +84,13 @@ class _LocationPageState extends State<LocationPage> {
                 (location, cityId) {
                   setState(() {
                     // dDataModel.setCity(cityId);
-                    dDataModel
-                        .setCity(cityId)
-                        ?.then((response) =>
-                            debugPrint("Set City Message===> $response"))
-                        .catchError((error) => debugPrint(error.toString()));
-                    _navigateToHomePage(context, location);
+                    dDataModel.setCity(cityId)?.then((response) {
+                      if (response.code == 200) {
+                        _navigateToHomePage(context, location);
+                      }else{
+                        _showToast("Your Location was wrong!");
+                      }
+                    }).catchError((error) => debugPrint(error.toString()));
                   });
                 },
               ),

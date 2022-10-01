@@ -12,9 +12,9 @@ class TicketPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: PAGE_BACKGROUND_COLOR,
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: MARGIN_xXLARGE),
-        color: APPBAR_COLOR,
         child: SingleChildScrollView(
           child: ListView.separated(
             physics: BouncingScrollPhysics(),

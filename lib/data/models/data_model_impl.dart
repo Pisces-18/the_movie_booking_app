@@ -15,6 +15,8 @@ import 'package:the_movie_booking_app/network/dataagents/movie_data_agent.dart';
 import 'package:the_movie_booking_app/network/dataagents/retrofit_data_agent_impl.dart';
 
 import '../../network/api_constants.dart';
+import '../../network/responses/city_response.dart';
+import '../../network/responses/get_checkout_response.dart';
 import '../../network/responses/user_response.dart';
 import '../vos/check_out_vo.dart';
 import '../vos/cinema_vo.dart';
@@ -41,6 +43,7 @@ class DataModelImpl extends DataModel{
   List<SnackCategoryVO>? mSnackCategoryRepository;
   List<List<SeatVO>>? mSeatingPlanRepository;
   CheckOutVO? mCheckOutRepository;
+  String? checkOutMessageRepository;
 
 
   @override
@@ -64,10 +67,7 @@ class DataModelImpl extends DataModel{
   }
 
 
-  @override
-  Future<void> getOTP(String phone)async {
-    mDataAgent.getOTP(phone);
-  }
+
 
   @override
   Future<UserResponse>? signInWithPhone(String phone,int otp){
@@ -168,18 +168,25 @@ class DataModelImpl extends DataModel{
   }
 
   @override
-  Future<void>? postCheckout(String name, int cinemaDayTimeSlotId, String seatNumber, String bookingDate, int movieId, int paymentTypeId, List<SnackVO> snacks) {
-     mDataAgent.postCheckout(mTokenRepository?? "", name, cinemaDayTimeSlotId, seatNumber, bookingDate, movieId, paymentTypeId, snacks)?.then((checkout) {
+  Future<GetCheckOutResponse>? postCheckout(String name, int cinemaDayTimeSlotId, String seatNumber, String bookingDate, int movieId, int paymentTypeId, List<SnackVO> snacks) {
+    return mDataAgent.postCheckout(mTokenRepository?? "", name, cinemaDayTimeSlotId, seatNumber, bookingDate, movieId, paymentTypeId, snacks)?.then((checkout) {
        mCheckOutRepository=checkout.data;
-       debugPrint("Checkout===>${mCheckOutRepository?.movieId}");
+       debugPrint("Check Out Data==>${checkout.code}");
+       //checkOutMessageRepository=checkout.message;
+       return Future.value(checkout);
      }).catchError((error){
        debugPrint("Checkout Response Error===>$error");
      });
   }
 
   @override
-  Future<String>? setCity(int cityId) {
+  Future<CityResponse>? setCity(int cityId) {
    return mDataAgent.setCity(mTokenRepository?? "", cityId);
+  }
+
+  @override
+  Future<CityResponse>? getOTP(String phone) {
+    return mDataAgent.getOTP(phone);
   }
 
 }

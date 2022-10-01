@@ -10,6 +10,7 @@ import '../data/models/data_model.dart';
 import '../data/models/data_model_impl.dart';
 import '../data/vos/cinema_and_show_time_slots_vo.dart';
 import '../data/vos/cinema_vo.dart';
+import '../data/vos/date_view_data_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/strings.dart';
@@ -32,21 +33,47 @@ class _CinemaPageState extends State<CinemaPage> {
   List<CinemaVO>? cinemaList;
   List<CinemaAndShowTimeSlotsVO>? cinemaTimeSotsList;
   List<String> dates=[];
+  // List<Map<String,dynamic>> dates=[];
   String? date;
+  List<DateViewVO> dd=[];
+  DateViewVO dateViewVO=DateViewVO("", false);
+  List<String> dateId=[];
+  Map<String,dynamic> rawDate={"date": "", "isSelected": false};
+
+
   @override
   void initState() {
     super.initState();
     ///Adding Dates
+    dateId=dd.map((date) => date.date?? "").toList();
+     for(int i=0;i<14;i++){
+       dd.add(dateViewVO);
+     }
+     for(int i=0;i<14;i++) {
+       DateTime days = DateTime.now().add(Duration(days: i));
+       String d = DateFormat('yyyy-MM-dd').format(days);
+       debugPrint("Day===>$d");
 
-    for(int i=0;i<14;i++) {
-      DateTime days = DateTime.now().add(Duration(days: i));
-      String d = DateFormat('yyyy-MM-dd').format(days);
-      dates.add(d);
+       dateViewVO.date=d;
+       dateViewVO.isSelected=false;
+       // dd.add(dateViewVO);
+       // rawDate['date']=d;
+       // rawDate['isSelected']=false;
+       // debugPrint("DateViewVO===>${dd[i].date}");
+       //
+       // dates.add(Map.from(rawDate));
 
-    }
+       dd.add(dateViewVO);
+
+       dates.add(d);
+       dd.add(dateViewVO);
+
+
+     }
+     for (var dDate in dd) {debugPrint("DateViewVO===>${dDate.date}"); }
 
     dDataModel
-        .getCinemaAndShowTimeByDate("2022-09-26")
+        .getCinemaAndShowTimeByDate(DateFormat('yyyy-MM-dd').format(DateTime.now()))
         ?.then((timeSlots) {
       setState(() {
         cinemaList = DataModelImpl().mCinemaRepository;
@@ -89,7 +116,7 @@ class _CinemaPageState extends State<CinemaPage> {
                   //date = DateFormat("yyyy-MM-dd")
                      // .format(DateFormat('MMM yyy d').parse(d?? DateTime.now().toString()));
                   dDataModel
-                      .getCinemaAndShowTimeByDate("2022-09-26")
+                      .getCinemaAndShowTimeByDate(d)
                       ?.then((timeSlotsList) {
                     setState(() {
                       cinemaTimeSotsList = timeSlotsList;

@@ -18,6 +18,7 @@ import 'package:the_movie_booking_app/network/the_cinema_api.dart';
 
 import '../../data/vos/check_out_vo.dart';
 import '../../data/vos/cinema_vo.dart';
+import '../responses/city_response.dart';
 import '../responses/get_checkout_response.dart';
 import '../responses/user_response.dart';
 import '../the_movie_api.dart';
@@ -33,12 +34,14 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
   }
 
   RetrofitDataAgentImpl._internal() {
-   // final dio = Dio();
+    // final dio = Dio();
 
     final dio = Dio(
       BaseOptions(
         followRedirects: false,
-        validateStatus:  (status) { return status! < 500; },
+        validateStatus: (status) {
+          return status! < 500;
+        },
         headers: {
           HEADER_REQUESTED_WITH: XML_HTTP_REQUEST,
         },
@@ -53,23 +56,23 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
     return mApi
         ?.getNowPlayingMovies(API_KEY, LANGUAGE_EN_US, page.toString())
         .asStream()
-        .map((response) => response.results??[])
+        .map((response) => response.results ?? [])
         .first;
   }
 
   @override
   Future<List<MovieVO>>? getUpcomingMovies(int page) {
     return mApi
-        ?.getNowPlayingMovies(API_KEY, LANGUAGE_EN_US, page.toString())
+        ?.getUpcomingMovies(API_KEY, LANGUAGE_EN_US, page.toString())
         .asStream()
-        .map((response) => response.results??[])
+        .map((response) => response.results ?? [])
         .first;
   }
 
   @override
   Future<MovieVO>? getMovieDetails(int movieId) {
-    return mApi
-        ?.getMovieDetails(movieId.toString(), API_KEY, LANGUAGE_EN_US, 1.toString());
+    return mApi?.getMovieDetails(
+        movieId.toString(), API_KEY, LANGUAGE_EN_US, 1.toString());
   }
 
   @override
@@ -77,14 +80,18 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
     return mApi
         ?.getCreditsByMovie(movieId.toString(), API_KEY, LANGUAGE_EN_US)
         .asStream()
-        .map((response) => response.cast??[])
+        .map((response) => response.cast ?? [])
         .first;
   }
 
-  @override
-  Future<void> getOTP(String phone) async {
-    cApi?.getOTP(phone);
-  }
+  // @override
+  // Future<CityResponse>? getOTP(String phone) async {
+  //   return cApi
+  //       ?.getOTP(phone)
+  //       .asStream()
+  //       .map((response) => response)
+  //       .first;
+  //     }
 
   @override
   Future<UserResponse>? signInWithPhone(String phone, int otp) {
@@ -96,7 +103,7 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
   }
 
   @override
-  Future<UserResponse>? signInWithGoogle(String accessToken,String name){
+  Future<UserResponse>? signInWithGoogle(String accessToken, String name) {
     return cApi
         ?.signInWithGoogle(accessToken, name)
         .asStream()
@@ -104,14 +111,13 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
         .first;
   }
 
-
   @override
   Future<List<CityVO>>? getCities() {
-    return cApi?.getCities()
+    return cApi
+        ?.getCities()
         .asStream()
-        .map((response) => response.data?? [])
+        .map((response) => response.data ?? [])
         .first;
-
   }
 
   @override
@@ -124,16 +130,17 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
     return cApi
         ?.getBanners()
         .asStream()
-        .map((response) => response.data?? [])
+        .map((response) => response.data ?? [])
         .first;
   }
 
   @override
-  Future<List<CinemaAndShowTimeSlotsVO>>? getCinemaAndShowTimeByDate(String token,String date) {
+  Future<List<CinemaAndShowTimeSlotsVO>>? getCinemaAndShowTimeByDate(
+      String token, String date) {
     return cApi
         ?.getCinemaAndShowTimeByDate(token, date)
         .asStream()
-        .map((response) => response.data?? [])
+        .map((response) => response.data ?? [])
         .first;
   }
 
@@ -142,14 +149,14 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
     return cApi
         ?.getSnackCategory(token)
         .asStream()
-        .map((response) => response.data?? [])
+        .map((response) => response.data ?? [])
         .first;
   }
 
   @override
-  Future<List<SnackVO>>? getSnacks(String token,int categoryId) {
+  Future<List<SnackVO>>? getSnacks(String token, int categoryId) {
     return cApi
-        ?.getSnacks(token,categoryId.toString())
+        ?.getSnacks(token, categoryId.toString())
         .asStream()
         .map((response) => response.data ?? [])
         .first;
@@ -171,11 +178,11 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
 
   @override
   Future<List<ConfigVO>>? getConfig() {
-   return cApi
-       ?.getConfig()
-       .asStream()
-       .map((response) => response.data?? [])
-       .first;
+    return cApi
+        ?.getConfig()
+        .asStream()
+        .map((response) => response.data ?? [])
+        .first;
   }
 
   @override
@@ -183,37 +190,44 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
     return cApi
         ?.getCinemas()
         .asStream()
-        .map((response) => response.data?? [])
+        .map((response) => response.data ?? [])
         .first;
   }
 
   @override
-  Future<List<List<SeatVO>>>? getSeatingPlanByShowTime(String authorization, int cinemaDayTimeslotId, String bookingDate) {
+  Future<List<List<SeatVO>>>? getSeatingPlanByShowTime(
+      String authorization, int cinemaDayTimeslotId, String bookingDate) {
     return cApi
-        ?.getSeatingPlanByShowTime(authorization, cinemaDayTimeslotId.toString(), bookingDate)
+        ?.getSeatingPlanByShowTime(
+            authorization, cinemaDayTimeslotId.toString(), bookingDate)
         .asStream()
-        .map((response) => response.data?? [[]])
+        .map((response) => response.data ?? [[]])
         .first;
   }
 
   @override
-  Future<GetCheckOutResponse>? postCheckout(String token, String name, int cinemaDayTimeSlotId, String seatNumber, String bookingDate, int movieId, int paymentTypeId, List<SnackVO> snacks) {
-    return cApi
-        ?.postCheckout(token, CheckOutRequest(name, cinemaDayTimeSlotId, seatNumber, bookingDate, movieId, paymentTypeId, snacks));
+  Future<GetCheckOutResponse>? postCheckout(
+      String token,
+      String name,
+      int cinemaDayTimeSlotId,
+      String seatNumber,
+      String bookingDate,
+      int movieId,
+      int paymentTypeId,
+      List<SnackVO> snacks) {
+    return cApi?.postCheckout(
+        token,
+        CheckOutRequest(name, cinemaDayTimeSlotId, seatNumber, bookingDate,
+            movieId, paymentTypeId, snacks));
   }
 
   @override
-  Future<String>? setCity(String token, int cityId) {
-    return cApi?.setCity(token, cityId.toString()).asStream().map((response) => response.message?? "").first;
+  Future<CityResponse>? setCity(String token, int cityId) {
+    return cApi?.setCity(token, cityId.toString());
   }
 
-
-
-
-
-
-
-
-
-
+  @override
+  Future<CityResponse>? getOTP(String phone) {
+    return cApi?.getOTP(phone);
+  }
 }

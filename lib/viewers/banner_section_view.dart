@@ -30,8 +30,8 @@ class _BannerSectionViewState extends State<BannerSectionView> {
           options: CarouselOptions(
               height: MediaQuery.of(context).size.height / 5,
               enlargeCenterPage: true,
-              enableInfiniteScroll: false,
-              initialPage: 1,
+              enableInfiniteScroll: true,
+              initialPage: 0,
               disableCenter: true,
               onPageChanged: (index,reason){
                 setState(() {

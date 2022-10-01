@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:the_movie_booking_app/data/models/data_model.dart';
 import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
@@ -17,69 +21,112 @@ class GetOTPPage extends StatefulWidget {
   State<GetOTPPage> createState() => _GetOTPPageState();
 }
 
-class _GetOTPPageState extends State<GetOTPPage> {
+class _GetOTPPageState extends State<GetOTPPage> with SingleTickerProviderStateMixin {
   DataModel dDataModel = DataModelImpl();
   String? message;
 
   @override
-  // void initState(){
-  //   super.initState();
-  //
-  //  setState((){
-  //    Fluttertoast.showToast(msg: "OTP code was sent",  toastLength: Toast.LENGTH_SHORT,timeInSecForIosWeb: 1,gravity: ToastGravity.CENTER,textColor: Colors.white,fontSize: TEXT_REGULAR_2X);
-  //  });
-  // }
+  void initState(){
+    super.initState();
+    setState((){
+      Timer(const Duration(seconds: 1), () {
+        _showToast("OTP code was sent to your phone number");
+      });
+    });
 
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: PAGE_BACKGROUND_COLOR,
-      appBar: AppBar(
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        backgroundColor: APPBAR_COLOR,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Image.asset(
-            "assets/images/leftIcon.png",
-            width: MARGIN_LARGE,
-            height: MARGIN_LARGE,
-          ),
-        ),
-      ),
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        padding: const EdgeInsets.symmetric(horizontal: MARGIN_XLARGE),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                  height: MediaQuery.of(context).size.height / 2.4,
-                  child:
-                      LoginLogoAndTextView(OTP_CODE_TEXT_1, OTP_CODE_TEXT_2)),
-              OTPCodeSectionView(codeList, (otp) {
-                debugPrint("OTP Code===>$otp");
-                setState(() {
-                  dDataModel
-                      .signInWithPhone(widget.phone, int.parse(otp))
-                      ?.then((user) {
-                    if (user.message == "Success") {
-                      debugPrint("Token===>${user.token}");
-                      _navigateToLocationPage(context);
-                    }
-                  }).catchError((error) {
-                    debugPrint("Token Errors===>$error");
-                  });
-                });
-              }),
-              SizedBox(height: MediaQuery.of(context).size.height / 6),
-              PrivacyPolicyTextView(),
-            ],
-          ),
-        ),
-      ),
+  }
+
+   _showToast(String msg){
+    showToast(
+      msg,
+      context: context,
+      duration: const Duration(seconds: 3),
+      animation: StyledToastAnimation.slideToRightFade,
+      position: StyledToastPosition.bottom,
+      backgroundColor: Colors.grey,
     );
   }
+
+  _shoLoading(){
+    Loader.show(context,
+        isSafeAreaOverlay: false,
+        isBottomBarOverlay: false,
+        overlayColor: Colors.black26,
+        progressIndicator: CircularProgressIndicator(color: Colors.teal,),
+    );
+  }
+  @override
+  void dispose() {
+    Loader.hide();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      child: Scaffold(
+        backgroundColor: PAGE_BACKGROUND_COLOR,
+        appBar: AppBar(
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          backgroundColor: APPBAR_COLOR,
+          leading: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Image.asset(
+              "assets/images/leftIcon.png",
+              width: MARGIN_LARGE,
+              height: MARGIN_LARGE,
+            ),
+          ),
+        ),
+        body: Container(
+          height: MediaQuery.of(context).size.height,
+          padding: const EdgeInsets.symmetric(horizontal: MARGIN_XLARGE),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                    height: MediaQuery.of(context).size.height / 2.4,
+                    child:
+                        LoginLogoAndTextView(OTP_CODE_TEXT_1, OTP_CODE_TEXT_2)),
+                OTPCodeSectionView(codeList, (otp) {
+                  setState((){
+                    debugPrint("OTP Code===>$otp");
+
+                    if(otp==""){
+                      _showToast("Please enter your OTP code!");
+                    }else{
+                      _shoLoading();
+                      dDataModel
+                          .signInWithPhone(widget.phone, int.parse(otp))
+                          ?.then((user) {
+                        Future.delayed(const Duration(seconds: 3),(){
+                          Loader.hide();
+                          if (user.code == 201) {
+                            debugPrint("Token===>${user.token}");
+                            _navigateToLocationPage(context);
+                          } else if(user.code==400){
+                            _showToast("Your OTP was Wrong!");
+                          }
+                        });
+                      }).catchError((error) {
+                        debugPrint("Token Errors===>$error");
+                      });
+                    }
+                  });
+                }),
+                SizedBox(height: MediaQuery.of(context).size.height / 6),
+                PrivacyPolicyTextView(),
+              ],
+            ),
+          ),
+        ),
+      ),
+      onWillPop: () async => !Loader.isShown
+    );
+  }
+
 
   Future<dynamic> _navigateToLocationPage(BuildContext context) {
     return Navigator.push(
@@ -144,16 +191,17 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
                   width: 20,
                   height: 35,
                   child: TextField(
+                    autofocus: true,
                     controller: _otpController1,
-                    textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(
-                          1), //n is maximum number of characters you want in textfield
+                          1),
                     ],
                     style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
                     textAlign: TextAlign.center,
+                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
                     decoration: const InputDecoration(
                       //contentPadding: EdgeInsets.symmetric(vertical: -1),
 
@@ -164,7 +212,9 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
                         color: Colors.black,
                       ),
                       border: InputBorder.none,
+
                     ),
+
                   ),
                 )),
             const SizedBox(width: MARGIN_MEDIUM),
@@ -179,13 +229,14 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
                   height: 35,
                   child: TextField(
                     controller: _otpController2,
-                    textInputAction: TextInputAction.next,
+                    //textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(
                           1), //n is maximum number of characters you want in textfield
                     ],
+                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
                     style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
                     textAlign: TextAlign.center,
                     decoration: const InputDecoration(
@@ -212,8 +263,8 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
                   width: 20,
                   height: 35,
                   child: TextField(
+                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
                     controller: _otpController3,
-                    textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
@@ -246,8 +297,8 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
                   width: 20,
                   height: 35,
                   child: TextField(
+                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
                     controller: _otpController4,
-                    textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
@@ -280,8 +331,8 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
                   width: 20,
                   height: 35,
                   child: TextField(
+                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
                     controller: _otpController5,
-                    textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
@@ -314,8 +365,8 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
                   width: 20,
                   height: 35,
                   child: TextField(
+                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
                     controller: _otpController6,
-                    textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,

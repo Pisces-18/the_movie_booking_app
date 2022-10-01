@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'dart:convert' show json;
+import 'package:alert/alert.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_awesome_alert_box/flutter_awesome_alert_box.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:simple_alert_box/simple_alert_box.dart';
 import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
 import 'package:the_movie_booking_app/pages/get_otp_page.dart';
 import 'package:the_movie_booking_app/pages/location_page.dart';
@@ -46,6 +51,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     _googleSignIn.signInSilently();
   }
+
 
   Future<void> _handleGetContact(GoogleSignInAccount user) async {
     setState(() {
@@ -121,7 +127,13 @@ class _LoginPageState extends State<LoginPage> {
               //const SizedBox(height: MARGIN_XXXLARGE),
               PhoneNumberSectionView(countryCodeList, (phone) {
                 setState((){
-                  dDataModel.getOTP(phone).then((value) => _navigateToGetOTPPge(context,phone)).catchError((error){
+                  dDataModel.getOTP(phone)?.then((response){
+                    if(response.code==200){
+
+                       _navigateToGetOTPPge(context,phone);
+
+                    }
+                  }).catchError((error){
                     debugPrint("Sign in With Phone Errors===>$error");
                   });
                   debugPrint(phone);
@@ -133,7 +145,8 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: MARGIN_xXLARGE),
               GoogleButtonTextView(() {
                 setState(() {
-                  _navigateToLocationPage(context);
+                  _showDialog();
+                  // _navigateToLocationPage(context);
                 });
                 // else{
                 //   Navigator.push(context, MaterialPageRoute(builder: (context)=>GetOTPPage()));
@@ -148,6 +161,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  _showDialog(){
+    InfoAlertBox(context: context,infoMessage: "This feature will be coming very soon!",title: "Information Alert",);
+  }
   Future<dynamic> _navigateToLocationPage(BuildContext context) =>
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => LocationPage()));
@@ -271,6 +287,7 @@ class PhoneNumberSectionView extends StatefulWidget {
 class _PhoneNumberSectionViewState extends State<PhoneNumberSectionView> {
   String dropDownValue = "+95";
   final _phoneController = TextEditingController();
+  String phoneNumber="";
 
   @override
   void dispose() {
@@ -325,6 +342,9 @@ class _PhoneNumberSectionViewState extends State<PhoneNumberSectionView> {
                 child: TextFormField(
                   controller: _phoneController,
                   style: const TextStyle(color: Colors.white),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     filled: true,
@@ -348,7 +368,16 @@ class _PhoneNumberSectionViewState extends State<PhoneNumberSectionView> {
           Container(
             height: MARGIN_XXxxLARGE,
             child: TextButton(
-              onPressed: () => widget.onPressedButton(_phoneController.text),
+              onPressed: () {
+                String editText;
+                if(_phoneController.text.startsWith("0")){
+                  editText=_phoneController.text.substring(1);
+                }else{
+                  editText=_phoneController.text;
+                }
+                phoneNumber=dropDownValue.substring(1)+editText;
+                widget.onPressedButton(phoneNumber);
+              },
               style: TextButton.styleFrom(
                   backgroundColor: PRIMARY_COLOR_1,
                   shape: RoundedRectangleBorder(

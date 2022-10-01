@@ -24,7 +24,7 @@ abstract class TheCinemaApi{
   factory TheCinemaApi(Dio dio)=_TheCinemaApi;
 
   @POST(ENDPOINT_GET_OTP)
-  Future<void> getOTP(
+  Future<CityResponse> getOTP(
       @Field(PARAM_POHONE_KEY) String phone,
       );
 

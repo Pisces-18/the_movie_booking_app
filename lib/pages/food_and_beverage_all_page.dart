@@ -236,8 +236,6 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
                       ),
                       child: FoodAndBeverageDataSectionView(snackList ?? [],
                           (snack) {
-
-
                         setState(() {
                           snacksId=selectedSnacks.map((snack) => snack.id?? 0).toList();
                           if(snacksId.contains(snack.id)){
@@ -328,15 +326,12 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
                               selectedSnacks[index].quantity=addCount;
                               count=count+1;
                               total = total+price;
-
-
                             });
                           },(minusCount,price,index,selected){
                             setState((){
                               selectedSnacks[index].quantity=minusCount;
                               count=count-1;
                               total=total-price;
-
                             });
                           },(){
                             _navigateToTicketCheckOutPage(

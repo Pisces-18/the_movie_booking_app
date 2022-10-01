@@ -15,17 +15,18 @@ import '../../data/vos/movie_vo.dart';
 import '../../data/vos/payment_vo.dart';
 import '../../data/vos/seat_vo.dart';
 import '../../data/vos/snack_category_vo.dart';
+import '../responses/city_response.dart';
 
 abstract class MovieDataAgent{
   Future<List<MovieVO>>? getNowPlayingMovies(int page);
   Future<List<MovieVO>>? getUpcomingMovies(int page);
   Future<MovieVO>? getMovieDetails(int movieId);
   Future<List<ActorVO>>? getCreditsByMovie(int movieId);
-  Future<void> getOTP(String phone);
+  Future<CityResponse>? getOTP(String phone);
   Future<UserResponse>? signInWithPhone(String phone,int otp);
   Future<UserResponse>? signInWithGoogle(String accessToken,String name);
   Future<List<CityVO>>? getCities();
-  Future<String>? setCity(String token,int cityId);
+  Future<CityResponse>? setCity(String token,int cityId);
   Future<List<BannerVO>>? getBanners();
   Future<List<CinemaAndShowTimeSlotsVO>>? getCinemaAndShowTimeByDate(String token,String date);
   Future<List<SnackCategoryVO>>? getSnackCategory(String token);

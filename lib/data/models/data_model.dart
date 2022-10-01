@@ -1,5 +1,7 @@
 import 'package:the_movie_booking_app/data/vos/actor_vo.dart';
 
+import '../../network/responses/city_response.dart';
+import '../../network/responses/get_checkout_response.dart';
 import '../../network/responses/user_response.dart';
 import '../vos/banner_vo.dart';
 import '../vos/check_out_vo.dart';
@@ -19,17 +21,17 @@ abstract class DataModel{
   Future<List<MovieVO>>? getUpcomingMovies(int page);
   Future<MovieVO>? getMovieDetails(int movieId);
   Future<List<ActorVO>>? getCreditsByMovie(int movieId);
-  Future<void> getOTP(String phone);
+  Future<CityResponse>? getOTP(String phone);
   Future<UserResponse>? signInWithPhone(String phone,int otp);
   Future<UserResponse>? signInWithGoogle(String accessToken,String name);
   Future<List<CityVO>>? getCities();
-  Future<String>? setCity(int cityId);
+  Future<CityResponse>? setCity(int cityId);
   Future<List<BannerVO>>? getBanners();
   Future<List<CinemaAndShowTimeSlotsVO>>? getCinemaAndShowTimeByDate(String date);
   void getSnackCategory();
   Future<List<SnackVO>>? getSnacks(int categoryId);
   Future<List<PaymentVO>>? getPaymentTypes();
-  Future<void>? postCheckout(String name,int cinemaDayTimeSlotId ,String seatNumber,String bookingDate,int movieId,int paymentTypeId,List<SnackVO> snacks) ;
+  Future<GetCheckOutResponse>? postCheckout(String name,int cinemaDayTimeSlotId ,String seatNumber,String bookingDate,int movieId,int paymentTypeId,List<SnackVO> snacks) ;
   void getConfig();
   void getCinemas();
   void getSeatingPlanByShowTime(int cinemaDayTimeslotId, String bookingDate);

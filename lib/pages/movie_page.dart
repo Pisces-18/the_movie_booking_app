@@ -8,7 +8,6 @@ import '../data/models/data_model_impl.dart';
 import '../data/vos/banner_vo.dart';
 import '../data/vos/movie_vo.dart';
 import '../resources/colors.dart';
-import '../resources/germs.dart';
 import '../resources/strings.dart';
 import '../viewers/banner_section_view.dart';
 import '../viewers/movie_section_view.dart';

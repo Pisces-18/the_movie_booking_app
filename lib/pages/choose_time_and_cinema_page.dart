@@ -30,6 +30,7 @@ class _ChooseTimeAndCinemaPageState extends State<ChooseTimeAndCinemaPage> {
   DataModel dDataModel = DataModelImpl();
   List<CinemaVO>? cinemaList;
   List<CinemaAndShowTimeSlotsVO>? cinemaTimeSotsList;
+
   // String date=DateFormat("yyyy-MM-dd").format(DateFormat('MMM yyy d').parse('Sep 2022 11'));
   List<String> dates=[];
   String? date;

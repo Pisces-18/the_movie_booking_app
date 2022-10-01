@@ -20,7 +20,7 @@ abstract class TheMovieApi{
       @Query(PARAM_PAGE) String page
       );
 
-  @GET(EMDPOINT_GET_UPCOMING)
+  @GET(ENDPOINT_GET_UPCOMING)
   Future<MovieListResponse> getUpcomingMovies(
       @Query(PARAM_API_KEY) String apiKey,
       @Query(PARAM_LANGUAGE) String language,
