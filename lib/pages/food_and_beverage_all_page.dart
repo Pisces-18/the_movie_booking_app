@@ -32,65 +32,71 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
   DataModel dDataModel = DataModelImpl();
   List<SnackCategoryVO>? snackCategory;
   List<SnackVO>? snackList;
+  String? token;
   List<SnackVO> selectedSnacks=[];
   int count = 0;
-  Map<String, dynamic> allCategory = {"id": 0, "title": "All"};
 
-
-  // int price = 0;
 
  List<int> snacksId=[];
   int total = 0;
-  //List<Map<String, dynamic>> selectedSnacks = [];
+
 
   @override
   void initState() {
     super.initState();
+    setState((){
+        SnackCategoryVO allCategory = SnackCategoryVO(0, "All", "", 1, "2022-09-16T18:49:00.000000Z", "2022-09-16T18:49:00.000000Z", null);
+        //dDataModel.getSnackCategory();
+        ///Get User token from database
+        dDataModel.signInWithPhoneDatabase()?.then((user){
+          setState((){
+            token=user.token;
+            debugPrint("Location Token==>$token");
+          });
+        }).catchError((error){
+          debugPrint("User Database Error ===> $error");
+        });
 
-    setState(() {
-      // snackCategory?.first.id = 0;
-      // snackCategory?.first.title = "All";
-      // snackCategory?.addAll(DataModelImpl().mSnackCategoryRepository ?? []);
-      snackCategory = DataModelImpl().mSnackCategoryRepository;
-      debugPrint(snackCategory?.first.title);
-      _getSnacksByCategoryAndRefresh(0);
+        ///Get SnackCategory from Database
+        dDataModel.getSnackCategoriesFromDatabase()?.then((categories) {
+          setState((){
+            snackCategory = categories;
+            snackCategory?.insert(0, allCategory);
+            debugPrint("SnackCategories from Database=>${snackCategory?[1].title}");
+            _getSnacksByCategoryAndRefresh(0);
+          });
+        }).catchError((error){
+          debugPrint("SnackCategories from Database Error=>$error");
+        });
+        //debugPrint(snackCategory?.first.title);
+
     });
-
   }
 
   void _getSnacksByCategoryAndRefresh(int categoryId) {
-    dDataModel.getSnacks(categoryId)?.then((snacks) {
+    ///Get Snacks From Network
+    dDataModel.getSnacks(token?? "",categoryId)?.then((snacks) {
       setState(() {
         snackList = snacks;
       });
     }).catchError((error) {
       debugPrint(error.toString());
     });
+
+    ///Get Snacks From Database
+    dDataModel.getSnacksFromDatabase(categoryId)?.then((snacks) {
+          setState(() {
+            snackList = snacks;
+            debugPrint("Snacks From Database===>${snackList?[0].name}");
+          });
+        }).catchError((error) {
+          debugPrint("Snacks From Database Error ===>$error");
+        });
   }
 
   static const List<Tab> categoryTab = [
     // // Tab(child: Text("All"),),
-    // snackCategory
-    //     ?.map(
-    //       (category) => Tab(
-    //     child: Text(
-    //       category.title?? "",
-    //       // style: const TextStyle(
-    //       //  fontFamily: 'DM Sans',
-    //       //     //fontStyle: ,
-    //       //     fontSize: TEXT_REGULAR_2X,
-    //       //     fontWeight: FontWeight.w600,
-    //       //     color: Colors.white),
-    //       style: GoogleFonts.inter(
-    //         textStyle: Theme.of(context).textTheme.labelMedium,
-    //         fontWeight: FontWeight.w600,
-    //         fontSize: TEXT_REGULAR_2X,
-    //         color: Colors.white,
-    //       ),
-    //     ),
-    //   ),
-    // )
-    //     .toList()?? [],
+
   ];
   Widget build(BuildContext context) {
 
@@ -146,34 +152,25 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
           child: Column(
             children: [
               DefaultTabController(
-                length: 5,
+                length: snackCategory?.length?? 0,
                 child: TabBar(
                     onTap: (index) {
                       setState(() {
-                        if (index == 0) {
-                          debugPrint(index.toString());
-                          dDataModel.getSnacks(0)?.then((snacks) {
-                            setState(() {
-                              snackList = snacks;
-                            });
-                          }).catchError((error) {
-                            debugPrint(error.toString());
-                          });
-                        } else {
-                          _getSnacksByCategoryAndRefresh(
-                              snackCategory?[index - 1].id ?? 0);
-                          debugPrint("${snackCategory?[index - 1].id ?? 0}");
-                        }
+                        _getSnacksByCategoryAndRefresh(
+                              snackCategory?[index].id ?? 0);
+                          debugPrint("${snackCategory?[index].id ?? 0}");
+
                       });
                     },
                     padding: const EdgeInsets.symmetric(
                         horizontal: MARGIN_MEDIUM_XL),
                     indicatorColor: PRIMARY_COLOR_1,
                     isScrollable: true,
-                    tabs: [
-                      Tab(
+                    tabs: snackCategory
+                        ?.map(
+                          (category) => Tab(
                         child: Text(
-                          "All",
+                          category.title?? "",
                           style: GoogleFonts.inter(
                             textStyle: Theme.of(context).textTheme.labelMedium,
                             fontWeight: FontWeight.w600,
@@ -182,51 +179,8 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
                           ),
                         ),
                       ),
-                      Tab(
-                        child: Text(
-                          "${snackCategory?[0].title}",
-                          style: GoogleFonts.inter(
-                            textStyle: Theme.of(context).textTheme.labelMedium,
-                            fontWeight: FontWeight.w600,
-                            fontSize: TEXT_REGULAR_2X,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      Tab(
-                        child: Text(
-                          "${snackCategory?[1].title}",
-                          style: GoogleFonts.inter(
-                            textStyle: Theme.of(context).textTheme.labelMedium,
-                            fontWeight: FontWeight.w600,
-                            fontSize: TEXT_REGULAR_2X,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      Tab(
-                        child: Text(
-                          "${snackCategory?[2].title}",
-                          style: GoogleFonts.inter(
-                            textStyle: Theme.of(context).textTheme.labelMedium,
-                            fontWeight: FontWeight.w600,
-                            fontSize: TEXT_REGULAR_2X,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      Tab(
-                        child: Text(
-                          "${snackCategory?[3].title}",
-                          style: GoogleFonts.inter(
-                            textStyle: Theme.of(context).textTheme.labelMedium,
-                            fontWeight: FontWeight.w600,
-                            fontSize: TEXT_REGULAR_2X,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ]),
+                    )
+                        .toList()?? [],),
               ),
               (snackList != null)
                   ? Container(
@@ -302,50 +256,20 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
               const SizedBox(width: MARGIN_MEDIUM_X),
               GestureDetector(
                 onTap: () {
-                  showModalBottomSheet(
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(MARGIN_MEDIUM_3),
-                            topRight: Radius.circular(MARGIN_MEDIUM_3)),
-                      ),
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Container(
-                          margin: EdgeInsets.zero,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: MARGIN_MEDIUM_3LX,
-                          ),
-                          decoration: const BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(MARGIN_MEDIUM_3),
-                                topRight: Radius.circular(MARGIN_MEDIUM_3)),
-                            color: PAGE_BACKGROUND_COLOR,
-                          ),
-                          child: FoodList(selectedSnacks,(addCount,price,index,selected){
-                            setState((){
-                              selectedSnacks[index].quantity=addCount;
-                              count=count+1;
-                              total = total+price;
-                            });
-                          },(minusCount,price,index,selected){
-                            setState((){
-                              selectedSnacks[index].quantity=minusCount;
-                              count=count-1;
-                              total=total-price;
-                            });
-                          },(){
-                            _navigateToTicketCheckOutPage(
-                                context,
-                                widget.location,
-                                widget.movieId,
-                                widget.cinema,
-                                widget.cinemaDayTimeSlot,
-                                widget.date,
-                                widget.seatNo,
-                                selectedSnacks);
-                          }),
-                        );
-                      });
+                  setState((){
+                    selectedSnacks.forEach((snack) {
+                      debugPrint("Selected${snack.name} ${snack.quantity}");
+                    });
+                    _showBottomSheet();
+                    setState((){
+                      count=0;
+                      total=0;
+                      for(int i=0;i<(selectedSnacks.length);i++){
+                        count=count+(selectedSnacks[i].quantity?? 0);
+                        total=total+((selectedSnacks[i].price?? 0)*(selectedSnacks[i].quantity?? 0)*1000);
+                      }
+                    });
+                  });
                 },
                 child: Image.asset(
                   "assets/images/up.png",
@@ -395,6 +319,53 @@ class _FoodAndBeverageAllPageState extends State<FoodAndBeverageAllPage> {
       ),
     );
   }
+  _showBottomSheet(){
+    showModalBottomSheet(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(MARGIN_MEDIUM_3),
+              topRight: Radius.circular(MARGIN_MEDIUM_3)),
+        ),
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+            margin: EdgeInsets.zero,
+            padding: const EdgeInsets.symmetric(
+              horizontal: MARGIN_MEDIUM_3LX,
+            ),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(MARGIN_MEDIUM_3),
+                  topRight: Radius.circular(MARGIN_MEDIUM_3)),
+              color: PAGE_BACKGROUND_COLOR,
+            ),
+            child: FoodList(selectedSnacks,(addCount,price,index,selected){
+              setState((){
+                selectedSnacks[index].quantity=addCount;
+                count=count+1;
+                total = total+price;
+
+              });
+            },(minusCount,price,index,selected){
+              setState((){
+                selectedSnacks[index].quantity=minusCount;
+                count=count-1;
+                total=total-price;
+              });
+            },(){
+              _navigateToTicketCheckOutPage(
+                  context,
+                  widget.location,
+                  widget.movieId,
+                  widget.cinema,
+                  widget.cinemaDayTimeSlot,
+                  widget.date,
+                  widget.seatNo,
+                  selectedSnacks);
+            }),
+          );
+        });
+  }
 }
 
 class FoodList extends StatefulWidget {
@@ -425,160 +396,136 @@ class _FoodListState extends State<FoodList> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ListView(
-          shrinkWrap: true,
-          children: widget.selectedSnack
-              ?.map(
-                (snack) => Padding(
-                  padding: const EdgeInsets.only(
-                    top: MARGIN_xLARGE,
+        ListView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: widget.selectedSnack?.length,
+            itemBuilder: (BuildContext context, int index){
+          return Padding(
+            padding: const EdgeInsets.only(
+              top: MARGIN_xLARGE,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width / 3.5,
+                  child: Text(
+                    widget.selectedSnack?[index].name?? "",
+                    style: GoogleFonts.inter(
+                      textStyle: Theme.of(context).textTheme.bodySmall,
+                      fontWeight: FontWeight.w600,
+                      fontSize: TEXT_REGULAR,
+                      color: Colors.white,
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width / 3.5,
-                        child: Text(
-                          snack.name?? "",
-                          style: GoogleFonts.inter(
-                            textStyle: Theme.of(context).textTheme.bodySmall,
-                            fontWeight: FontWeight.w600,
-                            fontSize: TEXT_REGULAR,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: MARGIN_XXLARGE),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            // addCount = widget.selectedFoodList
-                            //     .elementAt(index)['qty'] +
-                            //     1;
-                            // _count = widget.count + 1;
-                            // widget.onTapAdd(widget.qty+1);
-                            count=count+1;
-                            int price=((snack.price?? 0)*1000);
-                            total=total+price;
-                            widget.onTapAdd((snack.quantity?? 0)+1,price,widget.selectedSnack?.indexOf(snack)?? 0,widget.selectedSnack?? []);
-                            widget.selectedSnack?.forEach((items) {
-                              debugPrint(
-                                  "Bottom Snack===>${items.toString()}");
-                            });
-                          });
-                        },
-                        child: Container(
-                          decoration: const BoxDecoration(
-                              color: PRIMARY_COLOR_1, shape: BoxShape.circle),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: MARGIN_SMALL,
-                                top: MARGIN_XSMALL,
-                                left: MARGIN_XSMALL,
-                                right: MARGIN_XSMALL),
-                            child: Text(
-                              "+",
-                              style: GoogleFonts.inter(
-                                textStyle: Theme.of(context).textTheme.bodySmall,
-                                fontWeight: FontWeight.w700,
-                                fontSize: TEXT_REGULAR_2X,
-                                color: BUTTON_TEXT_COLOR_NS,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: MARGIN_CARD_MEDIUM_2L),
-                      Text(
-                        "${snack.quantity}",
+                ),
+                const SizedBox(width: MARGIN_XXLARGE),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      // addCount = widget.selectedFoodList
+                      //     .elementAt(index)['qty'] +
+                      //     1;
+                      // _count = widget.count + 1;
+                      // widget.onTapAdd(widget.qty+1);
+                      count=count+1;
+                      int price=((widget.selectedSnack?[index].price?? 0)*1000);
+                      total=total+price;
+                      widget.onTapAdd((widget.selectedSnack?[index].quantity?? 0)+1,price,index,widget.selectedSnack?? []);
+                      widget.selectedSnack?.forEach((items) {
+                        debugPrint(
+                            "Bottom Snack===>${items.toString()}");
+                      });
+                    });
+                  },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                        color: PRIMARY_COLOR_1, shape: BoxShape.circle),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: MARGIN_SMALL,
+                          top: MARGIN_XSMALL,
+                          left: MARGIN_XSMALL,
+                          right: MARGIN_XSMALL),
+                      child: Text(
+                        "+",
                         style: GoogleFonts.inter(
                           textStyle: Theme.of(context).textTheme.bodySmall,
                           fontWeight: FontWeight.w700,
-                          fontSize: TEXT_REGULAR,
-                          color: PRIMARY_COLOR_1,
+                          fontSize: TEXT_REGULAR_2X,
+                          color: BUTTON_TEXT_COLOR_NS,
                         ),
                       ),
-                      const SizedBox(width: MARGIN_CARD_MEDIUM_2L),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            count=count-1;
-                            int price=((snack.price?? 0)*1000);
-                            total=total-price;
-                            if((snack.quantity?? 0)>0){
-                              widget.onTapMinus((snack.quantity?? 0)-1,price,widget.selectedSnack?.indexOf(snack)?? 0,widget.selectedSnack?? []);
-                              if((snack.quantity?? 0)==0){
-                                // widget.onTapMinus(snack['qty']-1,widget.selectedSnack.indexOf(snack));
-                                widget.selectedSnack?.remove(snack);
+                    ),
+                  ),
+                ),
+                const SizedBox(width: MARGIN_CARD_MEDIUM_2L),
+                Text(
+                  "${widget.selectedSnack?[index].quantity}",
+                  style: GoogleFonts.inter(
+                    textStyle: Theme.of(context).textTheme.bodySmall,
+                    fontWeight: FontWeight.w700,
+                    fontSize: TEXT_REGULAR,
+                    color: PRIMARY_COLOR_1,
+                  ),
+                ),
+                const SizedBox(width: MARGIN_CARD_MEDIUM_2L),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      count=count-1;
+                      int price=((widget.selectedSnack?[index].price?? 0)*1000);
+                      total=total-price;
+                      if((widget.selectedSnack?[index].quantity?? 0)>0){
+                        widget.onTapMinus((widget.selectedSnack?[index].quantity?? 0)-1,price,index,widget.selectedSnack?? []);
+                        if((widget.selectedSnack?[index].quantity?? 0)==0){
+                          // widget.onTapMinus(snack['qty']-1,widget.selectedSnack.indexOf(snack));
+                          widget.selectedSnack?.remove(widget.selectedSnack?[index]);
 
-                              }
-                            }
+                        }
+                      }
 
-                           // debugPrint(widget.selectedSnack.indexOf(snack).toString());
-                            // minusCount = widget.selectedFoodList
-                            //     .elementAt(index)['qty'] -
-                            //     1;
-                            // _count = widget.count - 1;
-                            // if (widget.selectedFoodList
-                            //     .elementAt(index)['qty'] !=
-                            //     0) {
-                            // if(widget.qty!=0){
-                            //   widget.onTapMinus(widget.qty-1);
-                            // }
-                            //   widget.selectedFoodList.forEach((items) {
-                            //     debugPrint(
-                            //         "Bottom Snack===>${items.toString()}");
-                            //   });
-                            //   if (widget.selectedFoodList
-                            //       .elementAt(index)['qty'] ==
-                            //       0) {
-                            //     widget.selectedFoodList.removeAt(index);
-                            //     debugPrint(
-                            //         "Removed Snack===>${widget.selectedFoodList.toString()}");
-                            //   }
-                            // }
-                          });
-                        },
-                        child: Container(
-                          decoration: const BoxDecoration(
-                              color: PRIMARY_COLOR_1, shape: BoxShape.circle),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: MARGIN_SMALL,
-                                top: MARGIN_XSMALL,
-                                left: MARGIN_SMALL,
-                                right: MARGIN_SMALL),
-                            child: Center(
-                              child: Text(
-                                "-",
-                                style: GoogleFonts.inter(
-                                  textStyle: Theme.of(context).textTheme.bodySmall,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: TEXT_REGULAR_2X,
-                                  color: BUTTON_TEXT_COLOR_NS,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: MARGIN_XXXXXLARGE),
-                      Expanded(
+                    });
+                  },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                        color: PRIMARY_COLOR_1, shape: BoxShape.circle),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: MARGIN_SMALL,
+                          top: MARGIN_XSMALL,
+                          left: MARGIN_SMALL,
+                          right: MARGIN_SMALL),
+                      child: Center(
                         child: Text(
-                          "${(snack.price?? 0) * (snack.quantity?? 0) * 1000}Ks",
+                          "-",
                           style: GoogleFonts.inter(
                             textStyle: Theme.of(context).textTheme.bodySmall,
                             fontWeight: FontWeight.w700,
                             fontSize: TEXT_REGULAR_2X,
-                            color: Colors.white,
+                            color: BUTTON_TEXT_COLOR_NS,
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              )
-              .toList()?? [],
-        ),
+                const SizedBox(width: MARGIN_XXXXXLARGE),
+                Expanded(
+                  child: Text(
+                    "${(widget.selectedSnack?[index].price?? 0) * (widget.selectedSnack?[index].quantity?? 0) * 1000}Ks",
+                    style: GoogleFonts.inter(
+                      textStyle: Theme.of(context).textTheme.bodySmall,
+                      fontWeight: FontWeight.w700,
+                      fontSize: TEXT_REGULAR_2X,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
         Align(
           alignment: Alignment.bottomCenter,
           child: Container(
@@ -655,15 +602,18 @@ class NavigateToTicketCheckOutPageButtonView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => onTapButton(location),
-      child: Image.asset(
-        "assets/images/right_arrow.png",
-        color: APPBAR_COLOR,
+      child: Container(
+        padding: EdgeInsets.all(2),
+        child: Image.asset(
+          "assets/images/right_arrow.png",
+          color: APPBAR_COLOR,
+        ),
       ),
     );
   }
 }
 
-class FloatingButtonTotalPriceView extends StatelessWidget {
+class FloatingButtonTotalPriceView extends StatefulWidget {
   const FloatingButtonTotalPriceView({
     Key? key,
     required this.totalPrice,
@@ -671,9 +621,14 @@ class FloatingButtonTotalPriceView extends StatelessWidget {
   final int totalPrice;
 
   @override
+  State<FloatingButtonTotalPriceView> createState() => _FloatingButtonTotalPriceViewState();
+}
+
+class _FloatingButtonTotalPriceViewState extends State<FloatingButtonTotalPriceView> {
+  @override
   Widget build(BuildContext context) {
     return Text(
-      "${totalPrice}KS",
+      "${widget.totalPrice}KS",
       style: const TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: TEXT_REGULAR_2X,

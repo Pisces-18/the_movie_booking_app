@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../data/vos/cinema_time_slots_status_vo.dart';
 import '../data/vos/config_vo.dart';
-import '../data/vos/value_vo.dart';
+
 import '../pages/choose_time_and_cinema_page.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../widgets/time_and_cinema_condition_icon_and_text_view.dart';
 
 class TimeAndCinemaConditionSectionView extends StatefulWidget {
-  final List<dynamic>? configList;
+  final List<CinemaTimeSlotsStatusVO>? configList;
   TimeAndCinemaConditionSectionView(this.configList);
   @override
   State<TimeAndCinemaConditionSectionView> createState() =>
@@ -18,10 +19,7 @@ class TimeAndCinemaConditionSectionView extends StatefulWidget {
 class _TimeAndCinemaConditionSectionViewState
     extends State<TimeAndCinemaConditionSectionView> {
   @override
-  void initState(){
-    super.initState();
-    debugPrint("Config==>${widget.configList?[0]['title']}");
-  }
+
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -41,9 +39,9 @@ class _TimeAndCinemaConditionSectionViewState
           spacing: MARGIN_XXxLARGE,
           crossAxisAlignment: WrapCrossAlignment.start,
           children: widget.configList?.map((config) => TimeAndCinemaConditionView(
-            config['title'],
+            config.title?? "",
             "assets/images/dot1.png",
-            config['color'],
+            config.color?? "",
           ),
           ).toList()?? [],
         ),

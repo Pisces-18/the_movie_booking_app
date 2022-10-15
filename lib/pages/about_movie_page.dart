@@ -35,7 +35,7 @@ class _AboutMoviePageState extends State<AboutMoviePage> {
   @override
   void initState() {
     super.initState();
-    ///Get Movie Details
+    ///Get Movie Details Network
     mMovieModel.getMovieDetails(widget.movieId)?.then((movie) {
       setState(() {
         mMovie = movie;
@@ -44,13 +44,31 @@ class _AboutMoviePageState extends State<AboutMoviePage> {
       debugPrint(error.toString());
     });
 
-    ///Get Actor
+    ///Get Movie Details Database
+    mMovieModel.getMovieDetailsFromDatabase(widget.movieId)?.then((movie){
+      setState((){
+        mMovie=movie;
+      });
+    }).catchError((error){
+      debugPrint("Movie Details Database Error ===> $error");
+    });
+
+    ///Get Actors Network
     mMovieModel.getCreditsByMovie(widget.movieId)?.then((creditList) {
       setState(() {
-        actorList = creditList;
+        actorList = creditList.cast?? [];
       });
     }).catchError((error) {
       debugPrint(error.toString());
+    });
+
+    ///Get Actors Database
+    mMovieModel.getCreditsByMovieFromDatabase(widget.movieId)?.then((creditList){
+      setState(() {
+        actorList = creditList.cast?? [];
+      });
+    }).catchError((error){
+      debugPrint("Actors Database Error ===> $error");
     });
   }
 
@@ -254,53 +272,50 @@ class MovieInfoView extends StatefulWidget {
 class _MovieInfoViewState extends State<MovieInfoView> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: ABOUT_MOVIE_INFO_VIEW_HEIGHT,
-      child: Stack(
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: ABOUT_MOVIE_INFO_VIEW_BACKGROUND_HEIGHT,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: MoviePlayImageView(
-                          "$IMAGE_BASE_URL${widget.mMovie?.backDropPath}"),
-                    ),
-                    const Align(
-                      alignment: Alignment.topLeft,
-                      child: BackButtonView(),
-                    ),
-                    const Align(
-                      alignment: Alignment.topRight,
-                      child: ShareButtonView(),
-                    ),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: PlayButtonView(),
-                    )
-                  ],
-                ),
+    return Stack(
+      children: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: ABOUT_MOVIE_INFO_VIEW_BACKGROUND_HEIGHT,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: MoviePlayImageView(
+                        "$IMAGE_BASE_URL${widget.mMovie?.backDropPath}"),
+                  ),
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: BackButtonView(),
+                  ),
+                  const Align(
+                    alignment: Alignment.topRight,
+                    child: ShareButtonView(),
+                  ),
+                  const Align(
+                    alignment: Alignment.center,
+                    child: PlayButtonView(),
+                  )
+                ],
               ),
-              const SizedBox(height: MARGIN_MEDIUM_2),
-              MovieGenreInfoView(
-                mMovie: widget.mMovie,
-                movieTypeList: widget.mMovie?.genres
-                    ?.map((genre) => genre.name ?? "")
-                    .toList(),
-              ),
-            ],
-          ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child:
-            MovieImageView("$IMAGE_BASE_URL${widget.mMovie?.posterPath}"),
-          ),
-        ],
-      ),
+            ),
+            const SizedBox(height: MARGIN_MEDIUM_2),
+            MovieGenreInfoView(
+              mMovie: widget.mMovie,
+              movieTypeList: widget.mMovie?.genres
+                  ?.map((genre) => genre.name ?? "")
+                  .toList(),
+            ),
+          ],
+        ),
+        Align(
+          alignment: Alignment.bottomLeft,
+          child:
+          MovieImageView("$IMAGE_BASE_URL${widget.mMovie?.posterPath}"),
+        ),
+      ],
     );
   }
 }
@@ -426,7 +441,7 @@ class MovieImageView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding:
-      const EdgeInsets.only(left: MARGIN_MEDIUM_2x, bottom: MARGIN_CARD_MEDIUM_2L_X),
+      const EdgeInsets.only(left: MARGIN_MEDIUM_2x,top: ABOUT_MOVIE_CAST_LISTVIEW_HEIGHT),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(MARGIN_SMALL),
         child: Image.network(

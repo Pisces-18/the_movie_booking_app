@@ -1,25 +1,38 @@
 import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
 import 'package:the_movie_booking_app/data/vos/facility_vo.dart';
 import 'package:the_movie_booking_app/resources/colors.dart';
 import 'package:video_player/video_player.dart';
-
+import '../data/models/data_model.dart';
 import '../data/vos/cinema_vo.dart';
 import '../resources/dimens.dart';
-import '../resources/germs.dart';
 import '../resources/strings.dart';
 import '../widgets/available_service_icon_and_text_view.dart';
 
 class CinemaInfoPage extends StatefulWidget {
   final String location;
-  final CinemaVO? cinema;
-  CinemaInfoPage(this.location, this.cinema);
+  final int cinemaId;
+  CinemaInfoPage(this.location, this.cinemaId);
 
   @override
   State<CinemaInfoPage> createState() => _CinemaInfoPageState();
 }
 
 class _CinemaInfoPageState extends State<CinemaInfoPage> {
+  DataModel dDataModel=DataModelImpl();
+  CinemaVO? cinema;
+  void initState(){
+    super.initState();
+    dDataModel.getCinemaDetailsFromDatabase(widget.cinemaId)?.then((value){
+      setState((){
+        cinema=value;
+        debugPrint("Video File===>${cinema?.promoVdoUrl}");
+      });
+    }).catchError((error){
+      debugPrint("Cinema Info Database Error==>$error");
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,18 +76,18 @@ class _CinemaInfoPageState extends State<CinemaInfoPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              cinemaVideoView(widget.cinema?.promoVdoUrl?? ""),
+              cinemaVideoView(cinema?.promoVdoUrl?? ""),
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: MARGIN_MEDIUM_2, vertical: MARGIN_xLARGE),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CinemaNameAndLocationView(widget.cinema?.name?? "",widget.cinema?.address?? ""),
+                    CinemaNameAndLocationView(cinema?.name?? "",cinema?.address?? ""),
                     const SizedBox(height: MARGIN_XXLARGE),
-                    FacilitiesSectionView(widget.cinema?.facilities),
+                    FacilitiesSectionView(cinema?.facilities),
                     const SizedBox(height: MARGIN_XXLARGE),
-                    SafetySectionView(safetyList: widget.cinema?.safety)
+                    SafetySectionView(safetyList: cinema?.safety)
                   ],
                 ),
               )
@@ -177,20 +190,6 @@ class _FacilitiesSectionViewState extends State<FacilitiesSectionView> {
           children: widget.facilityList?.map((facility) => AvailableServiceIconAndTextView(facility.title?? "", facility.img?? "",PRIMARY_COLOR_1)).toList()?? [],
         )
 
-        // Wrap(
-        //   runSpacing: MARGIN_MEDIUM_2x,
-        //   spacing: MARGIN_CARD_MEDIUM_2L_X,
-        //   children: [
-        //     AvailableServiceIconAndTextView(
-        //         "Parking", "assets/images/parking_icon.png", PRIMARY_COLOR_1),
-        //     AvailableServiceIconAndTextView("Online Food",
-        //         "assets/images/foodAndBeverage.png", PRIMARY_COLOR_1),
-        //     AvailableServiceIconAndTextView("Wheel Chair",
-        //         "assets/images/wheel_chair_icon.png", PRIMARY_COLOR_1),
-        //     AvailableServiceIconAndTextView("Ticket Cancelation",
-        //         "assets/images/ticketCancelationIcon.png", PRIMARY_COLOR_1),
-        //   ],
-        // ),
       ],
     );
   }
@@ -244,23 +243,26 @@ class cinemaVideoView extends StatefulWidget {
 }
 
 class _cinemaVideoViewState extends State<cinemaVideoView> {
-  FlickManager? flickManager;
+  late FlickManager flickManager;
   @override
   void initState(){
     super.initState();
-    flickManager=FlickManager(videoPlayerController: VideoPlayerController.network(widget.videoUrl));
+
+      flickManager=FlickManager(videoPlayerController: VideoPlayerController.network(widget.videoUrl));
+
   }
 
   @override
   void dispose(){
-    flickManager?.dispose();
+    flickManager.dispose();
     super.dispose();
   }
   Widget build(BuildContext context) {
+
     return Container(
       height: CINEMA_INFO_IMAGE_HEIGHT,
       child: FlickVideoPlayer(
-        flickManager: flickManager!,
+        flickManager: flickManager,
       ),
     );
   }

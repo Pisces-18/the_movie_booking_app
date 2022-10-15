@@ -13,9 +13,9 @@ import '../resources/dimens.dart';
 import '../resources/germs.dart';
 
 class HomePage extends StatefulWidget {
-  String? Location;
+  final String? location;
   int movieIndex = 0;
-  HomePage(this.Location);
+  HomePage(this.location);
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -30,10 +30,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     setState((){
-      dDataModel.getSnackCategory();
-      debugPrint(DataModelImpl().mSnackCategoryRepository?[0].title);
-    });
 
+     // debugPrint(DataModelImpl().mSnackCategoryRepository?[0].title);
+      ///Get User Token from database
+      dDataModel.signInWithPhoneDatabase()?.then((user){
+       setState((){
+         debugPrint("Database Token ==> ${user.token}");
+         debugPrint("Database ID ==> ${user.id}");
+         debugPrint("Users ===> $user");
+         dDataModel.getSnackCategory(user.token?? "");
+       });
+      }).catchError((error){
+        debugPrint("User Database Error ===> $error");
+      });
+    });
   }
 
   @override
@@ -48,8 +58,8 @@ class _HomePageState extends State<HomePage> {
         controller: _myPage,
         physics: NeverScrollableScrollPhysics(),
         children: [
-          MoviePage(widget.Location ?? ""),
-          CinemaPage(widget.Location ?? ""),
+          MoviePage(widget.location ?? ""),
+          CinemaPage(widget.location ?? ""),
           TicketPage(),
           ProfilePage()
         ],

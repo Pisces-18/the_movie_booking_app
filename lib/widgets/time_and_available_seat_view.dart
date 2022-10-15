@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
+import '../data/vos/cinema_time_slots_status_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
 import '../resources/strings.dart';
@@ -32,18 +33,18 @@ class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
     super.initState();
 
       availableColor = Color(
-          int.parse("0XFF${(widget.configList?[0]['color']).substring(1, 7)}"));
+          int.parse("0XFF${(widget.configList?[0].color?? "").substring(1, 7)}"));
       fillingFastColor = Color(
-          int.parse("0XFF${(widget.configList?[1]['color']).substring(1, 7)}"));
+          int.parse("0XFF${(widget.configList?[1].color?? "").substring(1, 7)}"));
       almostFullColor = Color(
-          int.parse("0XFF${(widget.configList?[2]['color']).substring(1, 7)}"));
+          int.parse("0XFF${(widget.configList?[2].color?? "").substring(1, 7)}"));
 
-      availableId = widget.configList?[0]['id'];
-      fillingFastId = widget.configList?[1]['id'];
-      almostFullId = widget.configList?[2]['id'];
+      availableId = widget.configList?[0].id;
+      fillingFastId = widget.configList?[1].id;
+      almostFullId = widget.configList?[2].id;
 
 
-    debugPrint("Config${widget.configList?[0]['id']}");
+    // debugPrint("Config${widget.configList?[0].id}");
     //debugPrint("Time${widget.timeSlots?[0].status}");
     // if (widget.configList?[0]['id'] == widget.timeSlots?[0].status) {
     //   debugPrint("Config${widget.configList?[0]['id']}");
@@ -72,7 +73,7 @@ class _TimeAndAvailableSeatViewState extends State<TimeAndAvailableSeatView> {
                   onTap: () {
                     setState(() {
                       // selectedTimeSlotId=widget.timeSlots?[index].cinemaDayTimeslotsId;
-                      debugPrint("Status===>${widget.timeSlots?[index].status}");
+                      //debugPrint("Status===>${widget.timeSlots?[index].status}");
                       widget.onTapTime(
                           widget.timeSlots?[index]);
                     });

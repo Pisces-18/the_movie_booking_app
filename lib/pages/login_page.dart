@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_awesome_alert_box/flutter_awesome_alert_box.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:simple_alert_box/simple_alert_box.dart';
@@ -108,6 +109,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+
   Widget build(BuildContext context) {
     final GoogleSignInAccount? user = _currentUser;
     return Scaffold(
@@ -127,16 +129,21 @@ class _LoginPageState extends State<LoginPage> {
               //const SizedBox(height: MARGIN_XXXLARGE),
               PhoneNumberSectionView(countryCodeList, (phone) {
                 setState((){
-                  dDataModel.getOTP(phone)?.then((response){
-                    if(response.code==200){
+                  if(phone=="95"){
+                    _showDialog("Please enter your phone number!");
+                  }else{
+                    debugPrint(phone);
+                    dDataModel.getOTP(phone)?.then((response){
+                      if(response.code==200){
 
-                       _navigateToGetOTPPge(context,phone);
+                        _navigateToGetOTPPge(context,phone);
 
-                    }
-                  }).catchError((error){
-                    debugPrint("Sign in With Phone Errors===>$error");
-                  });
-                  debugPrint(phone);
+                      }
+                    }).catchError((error){
+                      debugPrint("Sign in With Phone Errors===>$error");
+                    });
+                  }
+
 
                 });
               }),
@@ -145,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: MARGIN_xXLARGE),
               GoogleButtonTextView(() {
                 setState(() {
-                  _showDialog();
+                  _showDialog("This feature will be coming very soon!");
                   // _navigateToLocationPage(context);
                 });
                 // else{
@@ -161,12 +168,22 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  _showDialog(){
-    InfoAlertBox(context: context,infoMessage: "This feature will be coming very soon!",title: "Information Alert",);
+  _showToast(String msg){
+    showToast(
+      msg,
+      context: context,
+      duration: const Duration(seconds: 4),
+      animation: StyledToastAnimation.slideToRightFade,
+      position: StyledToastPosition.bottom,
+      backgroundColor: Colors.transparent,
+    );
   }
-  Future<dynamic> _navigateToLocationPage(BuildContext context) =>
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => LocationPage()));
+
+
+  _showDialog(String msg){
+    InfoAlertBox(context: context,infoMessage: msg,title: "",);
+  }
+
 
   Future<dynamic> _navigateToGetOTPPge(BuildContext context,String phone) => Navigator.push(
         context,
@@ -342,9 +359,11 @@ class _PhoneNumberSectionViewState extends State<PhoneNumberSectionView> {
                 child: TextFormField(
                   controller: _phoneController,
                   style: const TextStyle(color: Colors.white),
-                  inputFormatters: [
+                  inputFormatters:[
                     FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(11)
                   ],
+                  cursorHeight: MARGIN_lLARGE,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     filled: true,
@@ -377,6 +396,7 @@ class _PhoneNumberSectionViewState extends State<PhoneNumberSectionView> {
                 }
                 phoneNumber=dropDownValue.substring(1)+editText;
                 widget.onPressedButton(phoneNumber);
+
               },
               style: TextButton.styleFrom(
                   backgroundColor: PRIMARY_COLOR_1,

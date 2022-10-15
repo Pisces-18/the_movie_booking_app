@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:the_movie_booking_app/data/vos/actor_vo.dart';
 import 'package:the_movie_booking_app/data/vos/banner_vo.dart';
-import 'package:the_movie_booking_app/data/vos/checkout_snack_vo.dart';
 import 'package:the_movie_booking_app/data/vos/cinema_and_show_time_slots_vo.dart';
 import 'package:the_movie_booking_app/data/vos/city_vo.dart';
 import 'package:the_movie_booking_app/data/vos/config_vo.dart';
@@ -10,14 +9,17 @@ import 'package:the_movie_booking_app/data/vos/payment_vo.dart';
 import 'package:the_movie_booking_app/data/vos/seat_vo.dart';
 import 'package:the_movie_booking_app/data/vos/snack_category_vo.dart';
 import 'package:the_movie_booking_app/data/vos/snack_vo.dart';
-import 'package:the_movie_booking_app/data/vos/user_vo.dart';
+import 'package:the_movie_booking_app/data/vos/user_data_vo.dart';
 import 'package:the_movie_booking_app/network/api_constants.dart';
 import 'package:the_movie_booking_app/network/dataagents/movie_data_agent.dart';
 import 'package:the_movie_booking_app/network/requests/checkout_request.dart';
 import 'package:the_movie_booking_app/network/the_cinema_api.dart';
 
 import '../../data/vos/check_out_vo.dart';
+import '../../data/vos/cinema_and_show_time_by_date_vo.dart';
 import '../../data/vos/cinema_vo.dart';
+import '../../data/vos/credit_vo.dart';
+import '../../data/vos/user_vo.dart';
 import '../responses/city_response.dart';
 import '../responses/get_checkout_response.dart';
 import '../responses/user_response.dart';
@@ -76,11 +78,11 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
   }
 
   @override
-  Future<List<ActorVO>>? getCreditsByMovie(int movieId) {
+  Future<CreditVO>? getCreditsByMovie(int movieId) {
     return mApi
         ?.getCreditsByMovie(movieId.toString(), API_KEY, LANGUAGE_EN_US)
         .asStream()
-        .map((response) => response.cast ?? [])
+        .map((response) => response)
         .first;
   }
 
@@ -94,7 +96,7 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
   //     }
 
   @override
-  Future<UserResponse>? signInWithPhone(String phone, int otp) {
+  Future<UserVO>? signInWithPhone(String phone, int otp) {
     return cApi
         ?.signInWithPhone(phone, otp.toString())
         .asStream()
@@ -103,7 +105,7 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
   }
 
   @override
-  Future<UserResponse>? signInWithGoogle(String accessToken, String name) {
+  Future<UserVO>? signInWithGoogle(String accessToken, String name) {
     return cApi
         ?.signInWithGoogle(accessToken, name)
         .asStream()
@@ -196,10 +198,10 @@ class RetrofitDataAgentImpl extends MovieDataAgent {
 
   @override
   Future<List<List<SeatVO>>>? getSeatingPlanByShowTime(
-      String authorization, int cinemaDayTimeslotId, String bookingDate) {
+      String token, int cinemaDayTimeslotId, String bookingDate) {
     return cApi
         ?.getSeatingPlanByShowTime(
-            authorization, cinemaDayTimeslotId.toString(), bookingDate)
+            token, cinemaDayTimeslotId.toString(), bookingDate)
         .asStream()
         .map((response) => response.data ?? [[]])
         .first;

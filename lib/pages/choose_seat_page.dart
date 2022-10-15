@@ -36,12 +36,12 @@ class _ChooseSeatPageState extends State<ChooseSeatPage> {
   List<List<SeatVO>>? seatList;
 
   @override
-  void initState() {
-    super.initState();
-
-    ///Get Movie Details
-
-  }
+  // void initState() {
+  //   super.initState();
+  //
+  //   ///Get Movie Details
+  //
+  // }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

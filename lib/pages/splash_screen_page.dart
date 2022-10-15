@@ -2,6 +2,10 @@ import 'dart:async';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:the_movie_booking_app/data/models/data_model.dart';
+import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
+import 'package:the_movie_booking_app/data/vos/user_data_vo.dart';
+import 'package:the_movie_booking_app/pages/home_page.dart';
 import 'package:the_movie_booking_app/pages/login_page.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
@@ -12,18 +16,35 @@ class SplashScreenPage extends StatefulWidget {
 }
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
+  DataModel dDataModel=DataModelImpl();
+  UserDataVO? userData;
   @override
   void initState() {
     super.initState();
+    dDataModel.signInWithPhoneDatabase()?.then((user){
+      setState((){
+        userData=user;
+      });
+    }).catchError((error){
+      debugPrint("User Database Error ===> $error");
+    });
     Timer(
       const Duration(seconds: 3),
-      () => Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LoginPage(),
-        ),
-      ),
+      () {
+        debugPrint("UserData===> $userData");
+        if(userData == null){
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LoginPage(),
+            ),
+          );
+        }else{
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage("Yangon")));
+        }
+      }
     );
+
   }
 
   @override

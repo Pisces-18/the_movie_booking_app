@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:the_movie_booking_app/data/vos/cinema_time_slots_status_vo.dart';
 import '../data/models/data_model.dart';
 import '../data/models/data_model_impl.dart';
 import '../data/vos/cinema_and_show_time_slots_vo.dart';
@@ -26,29 +27,66 @@ class _SearchCinemaPageState extends State<SearchCinemaPage> {
 
   String formatDropdownValue = formatDropDownItem[0];
   DataModel dDataModel = DataModelImpl();
+  List<CinemaTimeSlotsStatusVO>? cinemaTimeSlotsStatus;
   List<CinemaVO>? cinemaList;
   List<CinemaAndShowTimeSlotsVO>? cinemaTimeSotsList;
+  String? token;
   String? date;
   @override
   void initState() {
     super.initState();
-    DateTime.now();
-    Duration(days: 14);
+    ///Get User token from database
+    dDataModel.signInWithPhoneDatabase()?.then((user){
+      setState((){
+        dDataModel
+            .getCinemaAndShowTimeByDate(user.token?? "",
+            DateFormat('yyyy-MM-dd').format(DateTime.now()))
+            ?.then((timeSlots) {
+          setState(() {
 
-    dDataModel
-        .getCinemaAndShowTimeByDate(
-        DateFormat('yyyy-MM-dd').format(DateTime.now()))
-        ?.then((timeSlots) {
-      setState(() {
-        cinemaList = DataModelImpl().mCinemaRepository;
-        cinemaTimeSotsList=timeSlots;
-        debugPrint("Cinema Choose ${DataModelImpl().test}");
-        debugPrint(DataModelImpl().mCinemaRepository?[0].name.toString());
-        //debugPrint(cinemaList?[0].timeslots?[0].startTime.toString());
+            cinemaTimeSotsList=timeSlots;
+
+
+            //debugPrint(cinemaList?[0].timeslots?[0].startTime.toString());
+          });
+        }).catchError((error) {
+          debugPrint(error.toString());
+        });
+        // token=user.token;
+        // debugPrint("Location Token==>$token");
       });
-    }).catchError((error) {
-      debugPrint(error.toString());
+    }).catchError((error){
+      debugPrint("User Database Error ===> $error");
     });
+
+    ///TimeSlotsStatus from Database
+    dDataModel.getCinemaTimeSlotsStatusFromDatabase()?.then((timeSlots) {
+      setState((){
+        cinemaTimeSlotsStatus=timeSlots;
+      });
+    }).catchError((error){
+      debugPrint("TimeSlotsStatus===>$error}");
+    });
+
+    ///Cinemas from Database
+    dDataModel.getCinemasFromDatabase()?.then((cinemas){
+      setState((){
+        cinemaList=cinemas;
+      });
+    }).catchError((error){
+      debugPrint("Cinemas Database Errors==>$error");
+    });
+
+    ///Times Slots from Database
+    dDataModel.getCinemaAndShowTimeByDateFromDatabase(DateFormat('yyyy-MM-dd').format(DateTime.now()))?.then((times) {
+      setState((){
+        debugPrint("Time Slots from Database ===>${times.date}");
+        cinemaTimeSotsList=times.data;
+      });
+    }).catchError((error){
+      debugPrint("Time Slots Database error$error");
+    });
+
   }
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,8 +153,8 @@ class _SearchCinemaPageState extends State<SearchCinemaPage> {
                   shrinkWrap: true,
                   itemCount: cinemaList?.length,
                   itemBuilder: (BuildContext context, int index) {
-                    return CinemaExpansionView((location,cinema) => _navigateToCinemaInfoPage(
-                        context, location,cinema), (cinemaDayTimeSlot) =>(){}, cinemaTimeSotsList?[index].timeslots, widget.location, cinemaList?[index],DataModelImpl().mConfigRepository);
+                    return CinemaExpansionView((location,cinemaId) => _navigateToCinemaInfoPage(
+                        context, location,cinemaId), (cinemaDayTimeSlot) =>(){}, cinemaTimeSotsList?[index].timeslots, widget.location, cinemaList?[index],cinemaTimeSlotsStatus);
                   })
                   : const Center(
                 child: CircularProgressIndicator(),
@@ -128,9 +166,9 @@ class _SearchCinemaPageState extends State<SearchCinemaPage> {
     );
   }
   Future<dynamic> _navigateToCinemaInfoPage(
-      BuildContext context, String location,CinemaVO? cinema) =>
+      BuildContext context, String location,int cinemaId) =>
       Navigator.push(context,
-          MaterialPageRoute(builder: (context) => CinemaInfoPage(location,cinema)));
+          MaterialPageRoute(builder: (context) => CinemaInfoPage(location,cinemaId)));
 }
 
 class TimeRangeSectionView extends StatefulWidget {

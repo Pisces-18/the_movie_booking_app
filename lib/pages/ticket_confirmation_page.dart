@@ -1,4 +1,7 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
+import 'package:loading_overlay_pro/loading_overlay_pro.dart';
 import 'package:the_movie_booking_app/data/vos/check_out_vo.dart';
 import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
 import 'package:the_movie_booking_app/network/api_constants.dart';
@@ -17,12 +20,11 @@ import '../resources/strings.dart';
 import '../viewers/ticket_info_view.dart';
 
 class TicketConfirmationPage extends StatefulWidget {
-  //late Function onTapTicket;
   final String location;
   final CinemaVO? cinema;
+  final CheckOutVO? checkoutData;
+  TicketConfirmationPage(this.location, this.cinema,this.checkoutData);
 
-  TicketConfirmationPage(this.location,this.cinema);
-  //TicketConfirmationPage(this.location);
   @override
   State<TicketConfirmationPage> createState() => _TicketConfirmationPageState();
 }
@@ -30,41 +32,163 @@ class TicketConfirmationPage extends StatefulWidget {
 class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
   DataModel dDataModel = DataModelImpl();
 
-
   MovieVO? mMovie;
   List<SnackVO>? snackVO;
-  CheckOutVO? checkoutData;
 
+
+  bool? _isLoading;
   @override
   void initState() {
     super.initState();
 
-    // debugPrint(cinema?.name.toString());
-    // debugPrint(cinemaDayTimeSlotId.toString());
-    // debugPrint(date);
-    // debugPrint(snackList.toString());
-    // dDataModel.postCheckout("SSDK", widget.cinemaTimeSlot?.cinemaDayTimeslotsId?? 0, "G-6", widget.date, widget.movieId, widget.paymentId, [SnackVO(1, "Beverage", "", 1000, 123, "", 1, 2, 2000),SnackVO(1, "Beverage", "", 1000, 123, "", 1, 2, 2000)])?.then((checkout) {
-    //   setState((){
-    //     checkoutData=checkout;
-    //     debugPrint("MovieId Id${checkoutData?.movieId}");
-    //   });
-    // }).catchError((error){
-    //   debugPrint("Confirmation error$error");
-    // });
-    debugPrint("Movie Id ${DataModelImpl().mCheckOutRepository?.movieId}");
-    checkoutData=DataModelImpl().mCheckOutRepository;
+   // debugPrint("Movie Id ${DataModelImpl().mCheckOutRepository?.movieId}");
+    //checkoutData = DataModelImpl().mCheckOutRepository;
+
     ///Get Movie
-    dDataModel.getMovieDetails(checkoutData?.movieId?? 0)?.then((movie) {
+    dDataModel.getMovieDetails(widget.checkoutData?.movieId ?? 0)?.then((movie) {
       setState(() {
         mMovie = movie;
-        debugPrint(mMovie?.title.toString());
+        //debugPrint(mMovie?.title.toString());
       });
     }).catchError((error) {
       debugPrint(error.toString());
     });
 
+    //debugPrint("QR Code${checkoutData?.qrCode?.substring(7) ?? ""}");
+
+    _submit();
   }
 
+  void _submit() {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return (mMovie!=null)?LoadingOverlayPro(
+        isLoading: _isLoading ?? false,
+        backgroundColor: TICKET_CONFRMATION_OVERLAY_COLOR,
+        progressIndicator: ZoomOut(
+          duration: const Duration(seconds: 4),
+          child: Center(
+            child: Container(
+              height: TICKET_CONFIRMATION_SPLASH_SCREEN_HEIGHT,
+              child: Stack(
+                children: const [
+                  Positioned.fill(
+                    child: BallonImageView(),
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: HomeCinemaImageView(),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: TextView(),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+        child: JelloIn(
+            duration: Duration(seconds: 2),
+            child: TicketConfirmationSection(widget.cinema, mMovie, snackVO,
+                widget.checkoutData, () => _navigateToHomePage(context)))):const Center(child: CircularProgressIndicator(),);
+  }
+
+  Future<dynamic> _navigateToHomePage(BuildContext context) {
+    return Navigator.push(context,
+        MaterialPageRoute(builder: (context) => HomePage(widget.location)));
+  }
+}
+
+class TextView extends StatelessWidget {
+  const TextView({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: const [
+        Text(
+          TICKET_CONFIRMATION_TEXT1,
+          style: TextStyle(
+            decoration: TextDecoration.none,
+            fontWeight: FontWeight.w800,
+            fontSize: TEXT_REGULAR_3X,
+            color: Colors.white,
+          ),
+        ),
+        Text(
+          TICKET_CONFIRMATION_TEXT2,
+          style: TextStyle(
+            decoration: TextDecoration.none,
+            fontWeight: FontWeight.w800,
+            fontSize: TEXT_REGULAR_3X,
+            color: Colors.white,
+          ),
+        )
+      ],
+    );
+  }
+}
+
+class HomeCinemaImageView extends StatelessWidget {
+  const HomeCinemaImageView({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      "assets/images/homeCinema.png",
+    );
+  }
+}
+
+class BallonImageView extends StatelessWidget {
+  const BallonImageView({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      "assets/images/ballon.png",
+      height: BALLON_IMAGE_HEIGHT,
+    );
+  }
+}
+
+class TicketConfirmationSection extends StatefulWidget {
+  //late Function onTapTicket;
+  final CinemaVO? cinema;
+  final MovieVO? mMovie;
+  final List<SnackVO>? snackVO;
+  final CheckOutVO? checkoutData;
+  final Function onTapDone;
+
+  TicketConfirmationSection(this.cinema, this.mMovie, this.snackVO,
+      this.checkoutData, this.onTapDone);
+  //TicketConfirmationPage(this.location);
+  @override
+  State<TicketConfirmationSection> createState() =>
+      _TicketConfirmationSectionState();
+}
+
+class _TicketConfirmationSectionState extends State<TicketConfirmationSection>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,35 +206,32 @@ class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
           ),
           centerTitle: true,
         ),
-        body: (mMovie != null)
-            ? Container(
-                padding: const EdgeInsets.only(
-                  top: MARGIN_xXLARGE,
-                ),
-                child: Column(
-                  children: [
-                    TicketInfoView(mMovie,widget.cinema,checkoutData,()=>this),
-                    SizedBox(height: MediaQuery.of(context).size.height / 10),
-                    QrAndPinView(checkoutData?.qrCode?.substring(7)?? ""),
-                    SizedBox(height: MediaQuery.of(context).size.height / 12),
-                    DoneButtonView(widget.location)
-                  ],
-                ),
-              )
-            : const Center(
-                child: CircularProgressIndicator(),
-              ));
+        body: Container(
+          padding: const EdgeInsets.only(
+            top: MARGIN_xXLARGE,
+          ),
+          child: Column(
+            children: [
+              TicketInfoView(widget.mMovie, widget.cinema, widget.checkoutData,
+                  () => this),
+              SizedBox(height: MediaQuery.of(context).size.height / 10),
+              QrAndPinView(
+                  "$CINEMA_BASE_URL_DIO/${widget.checkoutData?.qrCode ?? ""}"),
+              SizedBox(height: MediaQuery.of(context).size.height / 12),
+              DoneButtonView(() => widget.onTapDone())
+            ],
+          ),
+        ));
   }
 }
 
 class DoneButtonView extends StatelessWidget {
-  final String location;
-  DoneButtonView(this.location);
+  final Function onTapDone;
+  DoneButtonView(this.onTapDone);
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: () => Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HomePage(location))),
+      onPressed: () => onTapDone(),
       style: TextButton.styleFrom(backgroundColor: PRIMARY_COLOR_1),
       child: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 60),
@@ -136,8 +257,8 @@ class QrAndPinView extends StatefulWidget {
 class _QrAndPinViewState extends State<QrAndPinView> {
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      "assets/images/qrAndPin.png",
+    return Image.network(
+      widget.image,
       width: QR_AND_PIN_WIDTH,
       height: QR_AND_PIN_HEIGHT,
     );

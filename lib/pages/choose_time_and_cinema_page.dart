@@ -4,8 +4,10 @@ import 'package:the_movie_booking_app/data/models/data_model.dart';
 import 'package:the_movie_booking_app/pages/choose_seat_page.dart';
 import '../data/models/data_model_impl.dart';
 import '../data/vos/cinema_and_show_time_slots_vo.dart';
+import '../data/vos/cinema_time_slots_status_vo.dart';
 import '../data/vos/cinema_vo.dart';
 import '../data/vos/config_vo.dart';
+import '../data/vos/date_view_data_vo.dart';
 import '../data/vos/time_slot_vo.dart';
 import '../resources/colors.dart';
 import '../resources/dimens.dart';
@@ -28,46 +30,76 @@ class ChooseTimeAndCinemaPage extends StatefulWidget {
 
 class _ChooseTimeAndCinemaPageState extends State<ChooseTimeAndCinemaPage> {
   DataModel dDataModel = DataModelImpl();
+  List<CinemaTimeSlotsStatusVO>? cinemaTimeSlotsStatus;
   List<CinemaVO>? cinemaList;
   List<CinemaAndShowTimeSlotsVO>? cinemaTimeSotsList;
+  String? token;
 
   // String date=DateFormat("yyyy-MM-dd").format(DateFormat('MMM yyy d').parse('Sep 2022 11'));
-  List<String> dates=[];
+
   String? date;
   @override
   void initState() {
     super.initState();
 
-    ///Adding Dates
-    for(int i=0;i<14;i++) {
-      DateTime days = DateTime.now().add(Duration(days: i));
-      String d = DateFormat('yyyy-MM-dd').format(days);
-      // DateTime d=DateFormat('yyyy-MM-dd').parse(DateTime.now().toString()).add(Duration(days: 1));
-      // debugPrint("Days===>$days");
-      // debugPrint("Formatted Days===>$d");
-      dates.add(d);
-      //debugPrint("Looping Dates===>$dates");
-    }
-    // debugPrint(DateFormat('EE').format(DateTime.now()));
-    // debugPrint(DateFormat('MM').format(DateTime.now()));
-    // debugPrint(DateFormat('d').format(DateTime.now()));
-    // debugPrint("Outside Dates===>$dates");
+      ///Get User token from database
+      dDataModel.signInWithPhoneDatabase()?.then((user){
+        setState((){
+          ///Time Slots from Network
+          dDataModel
+              .getCinemaAndShowTimeByDate(user.token?? "",DateFormat('yyyy-MM-dd').format(DateTime.now()))
+              ?.then((timeSlotsList) {
 
-    dDataModel
-        .getCinemaAndShowTimeByDate(
-            DateFormat('yyyy-MM-dd').format(DateTime.now()))
-        ?.then((timeSlots) {
-      setState(() {
-        cinemaList = DataModelImpl().mCinemaRepository;
-        cinemaTimeSotsList=timeSlots;
-        debugPrint("Cinema Choose ${DataModelImpl().test}");
-        debugPrint(DataModelImpl().mCinemaRepository?[0].name.toString());
-        //debugPrint(cinemaList?[0].timeslots?[0].startTime.toString());
+            setState((){
+              cinemaTimeSotsList = timeSlotsList;
+              debugPrint("TimeSlotsStatus from network==>${cinemaTimeSotsList?[0].timeslots}");
+            });
+
+          }).catchError((error) {
+            debugPrint("Time SLots error==>$error");
+          });
+
+          token=user.token;
+          debugPrint("Location Token==>$token");
+
+        });
+
+      }).catchError((error){
+        debugPrint("User Database Error ===> $error");
       });
-    }).catchError((error) {
-      debugPrint(error.toString());
+
+      ///TimeSlotsStatus from Database
+      dDataModel.getCinemaTimeSlotsStatusFromDatabase()?.then((timeSlotsStatus) {
+        setState((){
+          cinemaTimeSlotsStatus=timeSlotsStatus;
+          debugPrint("TimeSlotsStatus from database==>${cinemaTimeSlotsStatus?[0].title}");
+        });
+      }).catchError((error){
+        debugPrint("TimeSlotsStatus===>$error}");
+      });
+
+      ///Cinemas from Database
+      dDataModel.getCinemasFromDatabase()?.then((cinemas){
+        setState((){
+          cinemaList=cinemas;
+        });
+      }).catchError((error){
+        debugPrint("Cinemas Database Errors==>$error");
+      });
+
+     String dd=DateFormat('yyyy-MM-dd').format(DateTime.now());
+    ///Times Slots from Database
+    dDataModel.getCinemaAndShowTimeByDateFromDatabase(dd)?.then((times) {
+      setState((){
+        debugPrint("Time Slots from Database ===>${times.date}");
+        cinemaTimeSotsList=times.data;
+      });
+    }).catchError((error){
+      debugPrint("Time Slots Database error$error");
     });
-    debugPrint("Configuration===>${DataModelImpl().mConfigRepository}");
+
+
+
   }
 
 
@@ -122,20 +154,29 @@ class _ChooseTimeAndCinemaPageState extends State<ChooseTimeAndCinemaPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
            // mainAxisSize: MainAxisSize.min,
             children: [
-              DateView(dates, (d) {
+              DateView((d) {
                 setState(() {
-
-                  debugPrint("Date===>$d");
+                  ///Time Slots From Network
                   dDataModel
-                      .getCinemaAndShowTimeByDate(d)
+                      .getCinemaAndShowTimeByDate(token?? "",d)
                       ?.then((timeSlotsList) {
                     setState(() {
                       cinemaTimeSotsList = timeSlotsList;
-                     // debugPrint(
-                          //cinemaList?[0].timeslots?[0].startTime.toString());
+                      date=d;
+                      debugPrint("TimeSlotsStatus from network==>${cinemaTimeSotsList?[0].timeslots}");
                     });
                   }).catchError((error) {
                     debugPrint(error.toString());
+                  });
+
+                  ///Time Slots from Database
+                  dDataModel.getCinemaAndShowTimeByDateFromDatabase(d)?.then((times) {
+                    setState((){
+                      debugPrint("Time Slots from Database ===>${times.date}");
+                      cinemaTimeSotsList=times.data;
+                    });
+                  }).catchError((error){
+                    debugPrint("Time Slots Database error$error");
                   });
                 });
               }),
@@ -143,7 +184,7 @@ class _ChooseTimeAndCinemaPageState extends State<ChooseTimeAndCinemaPage> {
               const SizedBox(height: MARGIN_xXLARGE),
               MovieTypeSectionView(movieTypeList: movieTypeList),
               const SizedBox(height: MARGIN_XxLARGE),
-              TimeAndCinemaConditionSectionView(DataModelImpl().mConfigRepository),
+              TimeAndCinemaConditionSectionView(cinemaTimeSlotsStatus),
 
               (cinemaList != null)
                   ? ListView.builder(
@@ -151,9 +192,9 @@ class _ChooseTimeAndCinemaPageState extends State<ChooseTimeAndCinemaPage> {
                       shrinkWrap: true,
                       itemCount: cinemaList?.length,
                       itemBuilder: (BuildContext context, int index) {
-                        return CinemaExpansionView((location,cinema) => _navigateToCinemaInfoPage(
-                              context, location,cinema), (cinemaDayTimeSlot) => _navigateToChooseSeatPage(
-                                  context, widget.location,cinemaDayTimeSlot,cinemaList?[index],widget.movieId,date?? DateTime.now().toString()), cinemaTimeSotsList?[index].timeslots, widget.location, cinemaList?[index],DataModelImpl().mConfigRepository);
+                        return CinemaExpansionView((location,cinemaId) => _navigateToCinemaInfoPage(
+                              context, location,cinemaId), (cinemaDayTimeSlot) => _navigateToChooseSeatPage(
+                                  context, widget.location,cinemaDayTimeSlot,cinemaList?[index],widget.movieId,date?? DateTime.now().toString()), cinemaTimeSotsList?[index].timeslots, widget.location, cinemaList?[index],cinemaTimeSlotsStatus);
                       })
                   : const Center(
                       child: CircularProgressIndicator(),
@@ -167,9 +208,9 @@ class _ChooseTimeAndCinemaPageState extends State<ChooseTimeAndCinemaPage> {
   }
 
   Future<dynamic> _navigateToCinemaInfoPage(
-          BuildContext context, String location,CinemaVO? cinema) =>
+          BuildContext context, String location,int cinemaId) =>
       Navigator.push(context,
-          MaterialPageRoute(builder: (context) => CinemaInfoPage(location,cinema)));
+          MaterialPageRoute(builder: (context) => CinemaInfoPage(location,cinemaId)));
 
   Future<dynamic> _navigateToChooseSeatPage(
       BuildContext context, String location, TimeSlotVO? cinemaDayTimeSlot, CinemaVO? cinema, int movieId,String? date) {

@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:the_movie_booking_app/data/vos/user_vo.dart';
+import 'package:the_movie_booking_app/data/vos/user_data_vo.dart';
 
 
 part 'user_response.g.dart';
@@ -12,7 +12,7 @@ class UserResponse{
   String? message;
 
   @JsonKey(name: "data")
-  UserVO? data;
+  UserDataVO? data;
 
   @JsonKey(name : "token")
   String? token;

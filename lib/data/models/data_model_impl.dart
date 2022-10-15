@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:the_movie_booking_app/data/models/data_model.dart';
 import 'package:the_movie_booking_app/data/vos/actor_vo.dart';
 import 'package:the_movie_booking_app/data/vos/banner_vo.dart';
-import 'package:the_movie_booking_app/data/vos/checkout_snack_vo.dart';
 import 'package:the_movie_booking_app/data/vos/cinema_and_show_time_slots_vo.dart';
 import 'package:the_movie_booking_app/data/vos/city_vo.dart';
 import 'package:the_movie_booking_app/data/vos/config_vo.dart';
@@ -10,178 +9,259 @@ import 'package:the_movie_booking_app/data/vos/movie_vo.dart';
 import 'package:the_movie_booking_app/data/vos/payment_vo.dart';
 import 'package:the_movie_booking_app/data/vos/snack_category_vo.dart';
 import 'package:the_movie_booking_app/data/vos/snack_vo.dart';
-import 'package:the_movie_booking_app/data/vos/value_vo.dart';
 import 'package:the_movie_booking_app/network/dataagents/movie_data_agent.dart';
 import 'package:the_movie_booking_app/network/dataagents/retrofit_data_agent_impl.dart';
-
-import '../../network/api_constants.dart';
+import 'package:the_movie_booking_app/persistence/daos/banner_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/cinema_time_slots_status_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/cinema_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/city_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/config_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/credit_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/payment_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/snack_category_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/snack_dao.dart';
+import 'package:the_movie_booking_app/persistence/daos/user_dao.dart';
 import '../../network/responses/city_response.dart';
 import '../../network/responses/get_checkout_response.dart';
 import '../../network/responses/user_response.dart';
+import '../../persistence/daos/cinema_and_show_time_by_date_dao.dart';
+import '../../persistence/daos/movie_dao.dart';
 import '../vos/check_out_vo.dart';
+import '../vos/cinema_and_show_time_by_date_vo.dart';
+import '../vos/cinema_time_slots_status_vo.dart';
 import '../vos/cinema_vo.dart';
+import '../vos/credit_vo.dart';
 import '../vos/seat_vo.dart';
+import '../vos/user_data_vo.dart';
 import '../vos/user_vo.dart';
 
-class DataModelImpl extends DataModel{
-  MovieDataAgent mDataAgent=RetrofitDataAgentImpl();
+class DataModelImpl extends DataModel {
+  MovieDataAgent mDataAgent = RetrofitDataAgentImpl();
 
-  static final DataModelImpl _singleton=DataModelImpl._internal();
+  static final DataModelImpl _singleton = DataModelImpl._internal();
 
-  factory DataModelImpl(){
+  factory DataModelImpl() {
     return _singleton;
   }
 
   DataModelImpl._internal();
 
+  ///Daos
+  MovieDao mMovieDao = MovieDao();
+  CreditDao mCreditDao = CreditDao();
+  BannerDao cBannerDao = BannerDao();
+  CityDao cCityDao = CityDao();
+  UserDao cUserDao = UserDao();
+  CinemaDao cCinemaDao = CinemaDao();
+  CinemaTimeSlotsStatusDao cCinemaConditionDao = CinemaTimeSlotsStatusDao();
+  SnackCategoryDao cSnackCategoryDao = SnackCategoryDao();
+  PaymentDao cPaymentDao = PaymentDao();
+  SnackDao cSnackDao = SnackDao();
+  CinemaAndShowTimeByDateDao cCinemaAndShowTimeByDateDao =
+      CinemaAndShowTimeByDateDao();
+
   ///Data Repository
-  String? mTokenRepository;
-  List<dynamic>? mConfigRepository;
-  String? test;
-  List<CinemaVO>? mCinemaRepository;
-  List<CinemaAndShowTimeSlotsVO>? mCinemaTimeSlotsRepository;
-  List<SnackCategoryVO>? mSnackCategoryRepository;
+  //String? mTokenRepository;
+  // List<SnackCategoryVO>? mSnackCategoryRepository;
   List<List<SeatVO>>? mSeatingPlanRepository;
-  CheckOutVO? mCheckOutRepository;
-  String? checkOutMessageRepository;
+  //CheckOutVO? mCheckOutRepository;
+  // String? checkOutMessageRepository;
 
-
+  ///Network
   @override
   Future<List<MovieVO>>? getNowPlayingMovies(int page) {
-    return mDataAgent.getNowPlayingMovies(page);
+    return mDataAgent.getNowPlayingMovies(page)?.then((movies) async {
+      List<MovieVO> nowPlayingMovies = movies.map((movie) {
+        movie.isNowPlaying = true;
+        movie.isComingSoon = false;
+        return movie;
+      }).toList();
+      mMovieDao.saveAllMovies(nowPlayingMovies);
+      return Future.value(movies);
+    });
   }
 
   @override
   Future<List<MovieVO>>? getUpcomingMovies(int page) {
-    return mDataAgent.getUpcomingMovies(page);
+    return mDataAgent.getUpcomingMovies(page)?.then((movies) async {
+      List<MovieVO> upComingMovies = movies.map((movie) {
+        movie.isComingSoon = true;
+        movie.isNowPlaying = false;
+        return movie;
+      }).toList();
+      mMovieDao.saveAllMovies(upComingMovies);
+      return Future.value(movies);
+    });
   }
 
   @override
   Future<MovieVO>? getMovieDetails(int movieId) {
-    return mDataAgent.getMovieDetails(movieId);
+    return mDataAgent.getMovieDetails(movieId)?.then((movie) async {
+      mMovieDao.saveSingleMovie(movie);
+      return Future.value(movie);
+    });
   }
 
   @override
-  Future<List<ActorVO>>? getCreditsByMovie(int movieId) {
-    return mDataAgent.getCreditsByMovie(movieId);
-  }
-
-
-
-
-  @override
-  Future<UserResponse>? signInWithPhone(String phone,int otp){
-    return mDataAgent.signInWithPhone(phone, otp)?.then((user) {
-      //mTokenRepository="Bearer ${userVO.token}";
-      mTokenRepository="Bearer ${user.token}";
-      return user;
-    }).catchError((error){
-  debugPrint("Errors======>$error");
-  });
+  Future<CreditVO>? getCreditsByMovie(int movieId) {
+    return mDataAgent.getCreditsByMovie(movieId)?.then((credit) async {
+      mCreditDao.saveCreditByMovieId(credit);
+      return Future.value(credit);
+    });
   }
 
   @override
-  Future<UserResponse>? signInWithGoogle(String accessToken,String name){
-    return mDataAgent.signInWithGoogle(accessToken, name)?.then((user){
-      mTokenRepository="Bearer ${user.token}";
-      return user;
-    }).catchError((error){
+  Future<UserVO>? signInWithPhone(String phone, int otp) {
+    return mDataAgent.signInWithPhone(phone, otp)?.then((user) async{
+      //mTokenRepository = "Bearer ${user.token}";
+      //debugPrint(mTokenRepository);
+      UserDataVO userData = user.data;
+      userData.token = "Bearer ${user.token}";
+      cUserDao.saveUser(userData);
+      return Future.value(user);
+    }).catchError((error) {
+      debugPrint("Errors======>$error");
+    });
+  }
+
+  @override
+  Future<UserVO>? signInWithGoogle(String accessToken, String name) {
+    return mDataAgent.signInWithGoogle(accessToken, name)?.then((user) async{
+      //mTokenRepository = "Bearer ${user.token}";
+      UserDataVO userData = user.data;
+      userData.token = "Bearer ${user.token}";
+      cUserDao.saveUser(userData);
+      return Future.value(user);
+    }).catchError((error) {
       debugPrint("Errors====>$error");
     });
   }
 
-
   @override
   Future<List<CityVO>>? getCities() {
-    return mDataAgent.getCities();
+    return mDataAgent.getCities()?.then((cities) async {
+      cCityDao.saveAllCity(cities);
+      return Future.value(cities);
+    });
   }
 
-  // @override
-  // Future<String> setCity(int cityId)async {
-  //   mDataAgent.setCity(AUTHORIZATION, cityId);
-  // }
   @override
   Future<List<BannerVO>>? getBanners() {
-    return mDataAgent.getBanners();
+    return mDataAgent.getBanners()?.then((banners) async {
+      cBannerDao.saveAllBanners(banners);
+      return Future.value(banners);
+    });
   }
 
   @override
-  Future<List<CinemaAndShowTimeSlotsVO>>? getCinemaAndShowTimeByDate(String date) {
-     return mDataAgent.getCinemaAndShowTimeByDate(mTokenRepository?? "",date);
+  Future<List<CinemaAndShowTimeSlotsVO>>? getCinemaAndShowTimeByDate(
+      String token, String date) {
+      CinemaAndShowTimeByDateVO cinemaAndTimeSlotsList=CinemaAndShowTimeByDateVO([], "");
+    return mDataAgent
+        .getCinemaAndShowTimeByDate(token, date)
+        ?.then((times) async {
+      List<CinemaAndShowTimeSlotsVO> timeSlots=times;
+      cinemaAndTimeSlotsList.data=times;
+      cinemaAndTimeSlotsList.date = date;
+      debugPrint("TimeS===>${cinemaAndTimeSlotsList.data}");
+      //cinemaAndTimeSlotsList
+      cCinemaAndShowTimeByDateDao
+          .saveCinemaAndShowTimeSlotsByDate(cinemaAndTimeSlotsList);
+      return Future.value(times);
+    }).catchError((error) {
+      debugPrint("Times error==>$error");
+    });
   }
 
   @override
-  Future<List<SnackVO>>? getSnacks(int categoryId) {
-    return mDataAgent.getSnacks(mTokenRepository?? "",categoryId);
-
+  Future<List<SnackVO>>? getSnacks(String token, int categoryId) {
+    return mDataAgent.getSnacks(token, categoryId)?.then((snackList) async {
+      cSnackDao.saveAllSnack(snackList);
+      return Future.value(snackList);
+    });
   }
 
   @override
-  Future<List<PaymentVO>>? getPaymentTypes() {
-    return mDataAgent.getPaymentTypes(mTokenRepository?? "");
+  Future<List<PaymentVO>>? getPaymentTypes(String token) {
+    return mDataAgent.getPaymentTypes(token)?.then((paymentList) async {
+      cPaymentDao.saveAllPayment(paymentList);
+      return Future.value(paymentList);
+    });
   }
 
-  // @override
-  // Future<Future<CheckOutVO>?> postCheckout(String name,int cinemaDayTimeSlotId ,String seatNumber,String bookingDate,int movieId,int paymentTypeId,List<SnackVO> snacks) {
-  //   return mDataAgent.postCheckout(AUTHORIZATION, name, cinemaDayTimeSlotId, seatNumber, bookingDate, movieId, paymentTypeId, snacks);
-  // }
-
   @override
-  void getSnackCategory() {
-    mDataAgent.getSnackCategory(mTokenRepository?? "")?.then((snackCategories) {
-      mSnackCategoryRepository=snackCategories;
-      debugPrint("Snack ${mSnackCategoryRepository?[0].title}");
-    }).catchError((error){
+  void getSnackCategory(String token) {
+    mDataAgent.getSnackCategory(token)?.then((snackCategories) {
+      //mSnackCategoryRepository = snackCategories;
+      cSnackCategoryDao.saveAllSnackCategories(snackCategories);
+      //debugPrint("Snack ${mSnackCategoryRepository?[0].title}");
+    }).catchError((error) {
       debugPrint("Snack Category Error====>$error");
     });
   }
 
-
   @override
   void getConfig() {
-     mDataAgent.getConfig()?.then((configList) {
+    mDataAgent.getConfig()?.then((configList) async {
       // mConfigRepository=configList;
       // test=configList;
-       mConfigRepository=configList[1].value;
-       debugPrint("Message  ===>${configList[1].value}");
-
-     });
+      // mConfigList = configList;
+      List timeSlotsStatusList = configList[1].value;
+      List<CinemaTimeSlotsStatusVO> cinemaCondition = (timeSlotsStatusList)
+          .map((v) => CinemaTimeSlotsStatusVO.fromJson(v))
+          .toList();
+      cCinemaConditionDao.saveAllCinemaTimeSlotsStatus(cinemaCondition);
+    });
   }
 
   @override
   void getCinemas() {
     mDataAgent.getCinemas()?.then((cinemaList) {
-      mCinemaRepository=cinemaList;
+      cCinemaDao.saveAllCinemas(cinemaList);
       //
-    }).catchError((error){
-      debugPrint(error);
+    }).catchError((error) {
+      debugPrint("$error");
     });
   }
 
   @override
-  void getSeatingPlanByShowTime(int cinemaDayTimeslotId, String bookingDate) {
-    mDataAgent.getSeatingPlanByShowTime(mTokenRepository?? "", cinemaDayTimeslotId, bookingDate)?.then((seatList) {
-      mSeatingPlanRepository=seatList;
-    }).catchError((error){
+  void getSeatingPlanByShowTime(
+      String token, int cinemaDayTimeslotId, String bookingDate) {
+    mDataAgent
+        .getSeatingPlanByShowTime(token, cinemaDayTimeslotId, bookingDate)
+        ?.then((seatList) {
+      mSeatingPlanRepository = seatList;
+    }).catchError((error) {
       debugPrint("Seating Plan Error====>$error");
     });
   }
 
   @override
-  Future<GetCheckOutResponse>? postCheckout(String name, int cinemaDayTimeSlotId, String seatNumber, String bookingDate, int movieId, int paymentTypeId, List<SnackVO> snacks) {
-    return mDataAgent.postCheckout(mTokenRepository?? "", name, cinemaDayTimeSlotId, seatNumber, bookingDate, movieId, paymentTypeId, snacks)?.then((checkout) {
-       mCheckOutRepository=checkout.data;
-       debugPrint("Check Out Data==>${checkout.code}");
-       //checkOutMessageRepository=checkout.message;
-       return Future.value(checkout);
-     }).catchError((error){
-       debugPrint("Checkout Response Error===>$error");
-     });
+  Future<GetCheckOutResponse>? postCheckout(
+      String token,
+      String name,
+      int cinemaDayTimeSlotId,
+      String seatNumber,
+      String bookingDate,
+      int movieId,
+      int paymentTypeId,
+      List<SnackVO> snacks) {
+    return mDataAgent
+        .postCheckout(token, name, cinemaDayTimeSlotId, seatNumber, bookingDate,
+            movieId, paymentTypeId, snacks)
+        ?.then((checkout) {
+      //mCheckOutRepository = checkout.data;
+      //debugPrint("Check Out Data==>${checkout.code}");
+      //checkOutMessageRepository=checkout.message;
+      return Future.value(checkout);
+    }).catchError((error) {
+      debugPrint("Checkout Response Error===>$error");
+    });
   }
 
   @override
-  Future<CityResponse>? setCity(int cityId) {
-   return mDataAgent.setCity(mTokenRepository?? "", cityId);
+  Future<CityResponse>? setCity(String token, int cityId) {
+    return mDataAgent.setCity(token, cityId);
   }
 
   @override
@@ -189,4 +269,95 @@ class DataModelImpl extends DataModel{
     return mDataAgent.getOTP(phone);
   }
 
+  ///Database
+
+  @override
+  Future<UserDataVO>? signInWithPhoneDatabase() async {
+    return Future.value(cUserDao.getUser()?.first);
+  }
+
+  @override
+  Future<UserDataVO>? signInWithGoogleDatabase() async{
+    return Future.value(cUserDao.getUser()?.first);
+  }
+
+  @override
+  Future<List<CityVO>>? getCitiesFromDatabase() {
+    return Future.value(cCityDao.getAllCity());
+  }
+
+  @override
+  Future<List<MovieVO>>? getNowPlayingMoviesFromDatabase() async {
+    return Future.value(mMovieDao
+        .getAllMovies()
+        .where((movie) => movie.isNowPlaying ?? true)
+        .toList());
+  }
+
+  @override
+  Future<List<MovieVO>>? getUpComingMoviesFromDatabase() async {
+    return Future.value(mMovieDao
+        .getAllMovies()
+        .where((movie) => movie.isComingSoon ?? true)
+        .toList());
+  }
+
+  @override
+  Future<MovieVO>? getMovieDetailsFromDatabase(int movieId) async {
+    return Future.value(mMovieDao.getMovieById(movieId));
+  }
+
+  @override
+  Future<CreditVO>? getCreditsByMovieFromDatabase(int movieId) async {
+    return Future.value(mCreditDao.getAllActorsByMovieId(movieId));
+  }
+
+  @override
+  Future<List<BannerVO>>? getBannersFromDatabase() async {
+    return Future.value(cBannerDao.getAllBanners());
+  }
+
+  @override
+  Future<List<CinemaVO>>? getCinemasFromDatabase() async {
+    return Future.value(cCinemaDao.getAllCinema());
+  }
+
+  @override
+  Future<CinemaVO>? getCinemaDetailsFromDatabase(int cinemaId) async {
+    return Future.value(cCinemaDao.getSingleCinema(cinemaId));
+  }
+
+  @override
+  Future<List<CinemaTimeSlotsStatusVO>>?
+      getCinemaTimeSlotsStatusFromDatabase() {
+    return Future.value(cCinemaConditionDao.getAllCinemaTimeSlotsStatus());
+  }
+
+  @override
+  Future<List<SnackCategoryVO>>? getSnackCategoriesFromDatabase() {
+    return Future.value(cSnackCategoryDao.getAllSnackCategories());
+  }
+
+  @override
+  Future<List<PaymentVO>>? getPaymentTypesFromDatabase() {
+    return Future.value(cPaymentDao.getAllPayment());
+  }
+
+  @override
+  Future<List<SnackVO>>? getSnacksFromDatabase(int categoryId) {
+    if (categoryId == 0) {
+      return Future.value(cSnackDao.getAllSnacks());
+    } else {
+      return Future.value(cSnackDao
+          .getAllSnacks()
+          .where((snack) => snack.categoryId == categoryId)
+          .toList());
+    }
+  }
+
+  @override
+  Future<CinemaAndShowTimeByDateVO>?
+      getCinemaAndShowTimeByDateFromDatabase(String date) async {
+    return Future.value(cCinemaAndShowTimeByDateDao.getCinemaAndShowTimeSlotsByDate(date));
+  }
 }

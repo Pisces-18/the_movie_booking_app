@@ -11,6 +11,7 @@ import '../data/vos/city_vo.dart';
 import '../resources/strings.dart';
 
 class LocationPage extends StatefulWidget {
+
   @override
   State<LocationPage> createState() => _LocationPageState();
 }
@@ -18,19 +19,38 @@ class LocationPage extends StatefulWidget {
 class _LocationPageState extends State<LocationPage> {
   DataModel dDataModel = DataModelImpl();
   List<CityVO>? cityList;
+  String? token;
 
   @override
   void initState() {
     super.initState();
 
-    ///Get Cities
+    ///Get User token from database
+    dDataModel.signInWithPhoneDatabase()?.then((user){
+      setState((){
+        token=user.token;
+        debugPrint("Location Token==>$token");
+      });
+    }).catchError((error){
+      debugPrint("User Database Error ===> $error");
+    });
+
+    ///Get Cities Network
     dDataModel.getCities()?.then((cities) {
       setState(() {
         cityList = cities;
-        debugPrint("Cities===>${cityList?[0].name}");
       });
     }).catchError((error) {
       debugPrint("Errors====>$error");
+    });
+
+    ///Get Cities Database
+    dDataModel.getCitiesFromDatabase()?.then((cities) {
+      setState((){
+        cityList=cities;
+      });
+    }).catchError((error){
+      debugPrint("City Database Error ===> $error");
     });
   }
 
@@ -84,7 +104,7 @@ class _LocationPageState extends State<LocationPage> {
                 (location, cityId) {
                   setState(() {
                     // dDataModel.setCity(cityId);
-                    dDataModel.setCity(cityId)?.then((response) {
+                    dDataModel.setCity(token?? "",cityId)?.then((response) {
                       if (response.code == 200) {
                         _navigateToHomePage(context, location);
                       }else{
@@ -106,7 +126,7 @@ class _LocationPageState extends State<LocationPage> {
       context,
       MaterialPageRoute(
         builder: (context) => HomePage(
-          location,
+          location
         ),
       ),
     );
@@ -135,49 +155,48 @@ class _LocationCitySectionViewState extends State<LocationCitySectionView> {
           child: CityImageView(),
         ),
         CityTitleTextView(),
-        Container(
-          height: MediaQuery.of(context).size.height / 1.5,
-          child: (widget.cityList != null)
-              ? ListView.builder(
-                  itemCount: widget.cityList?.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          widget.onTapLocation(
-                              widget.cityList?[index].name ?? "",
-                              widget.cityList?[index].id ?? 0);
-                          //widget.searchLocation(widget.cityList.elementAt(index));
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.only(
-                          left: MARGIN_MEDIUM_3,
-                          top: MARGIN_MEDIUM_3,
-                          bottom: MARGIN_MEDIUM_3,
-                        ),
-                        decoration: const BoxDecoration(
-                          border: Border(
-                              bottom: BorderSide(
-                            color: CITY_CONTAINER_COLOR,
-                          )),
-                          color: APPBAR_COLOR,
-                        ),
-                        child: Text(
-                          widget.cityList?[index].name ?? "",
-                          style: GoogleFonts.inter(
-                            textStyle: Theme.of(context).textTheme.labelMedium,
-                            fontWeight: FontWeight.w500,
-                            fontSize: TEXT_REGULAR_2X,
-                            color: Colors.white,
-                          ),
+        (widget.cityList != null)
+            ? ListView.builder(
+          shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: widget.cityList?.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        widget.onTapLocation(
+                            widget.cityList?[index].name ?? "",
+                            widget.cityList?[index].id ?? 0);
+                        //widget.searchLocation(widget.cityList.elementAt(index));
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.only(
+                        left: MARGIN_MEDIUM_3,
+                        top: MARGIN_MEDIUM_3,
+                        bottom: MARGIN_MEDIUM_3,
+                      ),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(
+                          color: CITY_CONTAINER_COLOR,
+                        )),
+                        color: APPBAR_COLOR,
+                      ),
+                      child: Text(
+                        widget.cityList?[index].name ?? "",
+                        style: GoogleFonts.inter(
+                          textStyle: Theme.of(context).textTheme.labelMedium,
+                          fontWeight: FontWeight.w500,
+                          fontSize: TEXT_REGULAR_2X,
+                          color: Colors.white,
                         ),
                       ),
-                    );
-                  },
-                )
-              : const Center(child: CircularProgressIndicator()),
-        )
+                    ),
+                  );
+                },
+              )
+            : const Center(child: CircularProgressIndicator())
       ],
     );
   }

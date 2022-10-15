@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:the_movie_booking_app/data/vos/checkout_snack_vo.dart';
+
 
 import '../../data/vos/snack_vo.dart';
 

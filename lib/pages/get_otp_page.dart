@@ -23,13 +23,13 @@ class GetOTPPage extends StatefulWidget {
 
 class _GetOTPPageState extends State<GetOTPPage> with SingleTickerProviderStateMixin {
   DataModel dDataModel = DataModelImpl();
-  String? message;
+  int? userId;
 
   @override
   void initState(){
     super.initState();
     setState((){
-      Timer(const Duration(seconds: 1), () {
+      Timer(const Duration(seconds: 0), () {
         _showToast("OTP code was sent to your phone number");
       });
     });
@@ -104,7 +104,9 @@ class _GetOTPPageState extends State<GetOTPPage> with SingleTickerProviderStateM
                         Future.delayed(const Duration(seconds: 3),(){
                           Loader.hide();
                           if (user.code == 201) {
+                            //userId=user.data.id;
                             debugPrint("Token===>${user.token}");
+                            debugPrint("Database Token ==> ${user.toJson()}");
                             _navigateToLocationPage(context);
                           } else if(user.code==400){
                             _showToast("Your OTP was Wrong!");
@@ -114,6 +116,12 @@ class _GetOTPPageState extends State<GetOTPPage> with SingleTickerProviderStateM
                         debugPrint("Token Errors===>$error");
                       });
                     }
+
+                    // dDataModel.signInWithPhoneDatabase(userId?? 0)?.then((user){
+                    //   debugPrint("Database Token ==> ${user.id}");
+                    // }).catchError((error){
+                    //   debugPrint("User Database Error ===> $error");
+                    // });
                   });
                 }),
                 SizedBox(height: MediaQuery.of(context).size.height / 6),
@@ -179,216 +187,224 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
       children: [
         OTPCodeTitleTextView(),
         const SizedBox(height: MARGIN_MEDIUM),
-        Wrap(
-          children: [
-            Chip(
-                padding: const EdgeInsets.all(MARGIN_MEDIUM),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MARGIN_SMALL),
-                ),
-                label: Container(
-                  width: 20,
-                  height: 35,
-                  child: TextField(
-                    autofocus: true,
-                    controller: _otpController1,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(
-                          1),
-                    ],
-                    style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
-                    textAlign: TextAlign.center,
-                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
-                    decoration: const InputDecoration(
-                      //contentPadding: EdgeInsets.symmetric(vertical: -1),
+        Center(
+          child: Wrap(
+            children: [
+              Chip(
+                  padding: const EdgeInsets.all(MARGIN_MEDIUM),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MARGIN_SMALL),
+                  ),
+                  label: Container(
+                    width: 20,
+                    height: 35,
+                    child: TextField(
+                      cursorHeight: MARGIN_lLARGE,
+                      autofocus: true,
+                      controller: _otpController1,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(
+                            1),
+                      ],
+                      style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
+                      textAlign: TextAlign.center,
+                      onChanged: (_)=> FocusScope.of(context).nextFocus(),
+                      decoration: const InputDecoration(
+                        //contentPadding: EdgeInsets.symmetric(vertical: -1),
 
-                      filled: false,
-                      hintStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: TEXT_REGULAR_2X,
-                        color: Colors.black,
+                        filled: false,
+                        hintStyle: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: TEXT_REGULAR_2X,
+                          color: Colors.black,
+                        ),
+                        border: InputBorder.none,
+
                       ),
-                      border: InputBorder.none,
 
                     ),
-
+                  )),
+              const SizedBox(width: MARGIN_MEDIUM),
+              Chip(
+                  padding: const EdgeInsets.all(MARGIN_MEDIUM),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MARGIN_SMALL),
                   ),
-                )),
-            const SizedBox(width: MARGIN_MEDIUM),
-            Chip(
-                padding: const EdgeInsets.all(MARGIN_MEDIUM),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MARGIN_SMALL),
-                ),
-                label: Container(
-                  width: 20,
-                  height: 35,
-                  child: TextField(
-                    controller: _otpController2,
-                    //textInputAction: TextInputAction.next,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(
-                          1), //n is maximum number of characters you want in textfield
-                    ],
-                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
-                    style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      //contentPadding: EdgeInsets.symmetric(vertical: -1),
+                  label: Container(
+                    width: 20,
+                    height: 35,
+                    child: TextField(
+                      cursorHeight: MARGIN_lLARGE,
+                      controller: _otpController2,
+                      //textInputAction: TextInputAction.next,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(
+                            1), //n is maximum number of characters you want in textfield
+                      ],
+                      onChanged: (_)=> FocusScope.of(context).nextFocus(),
+                      style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
+                      textAlign: TextAlign.center,
+                      decoration: const InputDecoration(
+                        //contentPadding: EdgeInsets.symmetric(vertical: -1),
 
-                      filled: false,
-                      hintStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: TEXT_REGULAR_2X,
-                        color: Colors.black,
+                        filled: false,
+                        hintStyle: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: TEXT_REGULAR_2X,
+                          color: Colors.black,
+                        ),
+                        border: InputBorder.none,
                       ),
-                      border: InputBorder.none,
                     ),
+                  )),
+              const SizedBox(width: MARGIN_MEDIUM),
+              Chip(
+                  padding: const EdgeInsets.all(MARGIN_MEDIUM),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MARGIN_SMALL),
                   ),
-                )),
-            const SizedBox(width: MARGIN_MEDIUM),
-            Chip(
-                padding: const EdgeInsets.all(MARGIN_MEDIUM),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MARGIN_SMALL),
-                ),
-                label: Container(
-                  width: 20,
-                  height: 35,
-                  child: TextField(
-                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
-                    controller: _otpController3,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(
-                          1), //n is maximum number of characters you want in textfield
-                    ],
-                    style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      //contentPadding: EdgeInsets.symmetric(vertical: -1),
+                  label: Container(
+                    width: 20,
+                    height: 35,
+                    child: TextField(
+                      cursorHeight: MARGIN_lLARGE,
+                      onChanged: (_)=> FocusScope.of(context).nextFocus(),
+                      controller: _otpController3,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(
+                            1), //n is maximum number of characters you want in textfield
+                      ],
+                      style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
+                      textAlign: TextAlign.center,
+                      decoration: const InputDecoration(
+                        //contentPadding: EdgeInsets.symmetric(vertical: -1),
 
-                      filled: false,
-                      hintStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: TEXT_REGULAR_2X,
-                        color: Colors.black,
+                        filled: false,
+                        hintStyle: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: TEXT_REGULAR_2X,
+                          color: Colors.black,
+                        ),
+                        border: InputBorder.none,
                       ),
-                      border: InputBorder.none,
                     ),
+                  )),
+              const SizedBox(width: MARGIN_MEDIUM),
+              Chip(
+                  padding: const EdgeInsets.all(MARGIN_MEDIUM),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MARGIN_SMALL),
                   ),
-                )),
-            const SizedBox(width: MARGIN_MEDIUM),
-            Chip(
-                padding: const EdgeInsets.all(MARGIN_MEDIUM),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MARGIN_SMALL),
-                ),
-                label: Container(
-                  width: 20,
-                  height: 35,
-                  child: TextField(
-                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
-                    controller: _otpController4,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(
-                          1), //n is maximum number of characters you want in textfield
-                    ],
-                    style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      //contentPadding: EdgeInsets.symmetric(vertical: -1),
+                  label: Container(
+                    width: 20,
+                    height: 35,
+                    child: TextField(
+                      cursorHeight: MARGIN_lLARGE,
+                      onChanged: (_)=> FocusScope.of(context).nextFocus(),
+                      controller: _otpController4,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(
+                            1), //n is maximum number of characters you want in textfield
+                      ],
+                      style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
+                      textAlign: TextAlign.center,
+                      decoration: const InputDecoration(
+                        //contentPadding: EdgeInsets.symmetric(vertical: -1),
 
-                      filled: false,
-                      hintStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: TEXT_REGULAR_2X,
-                        color: Colors.black,
+                        filled: false,
+                        hintStyle: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: TEXT_REGULAR_2X,
+                          color: Colors.black,
+                        ),
+                        border: InputBorder.none,
                       ),
-                      border: InputBorder.none,
                     ),
+                  )),
+              const SizedBox(width: MARGIN_MEDIUM),
+              Chip(
+                  padding: const EdgeInsets.all(MARGIN_MEDIUM),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MARGIN_SMALL),
                   ),
-                )),
-            const SizedBox(width: MARGIN_MEDIUM),
-            Chip(
-                padding: const EdgeInsets.all(MARGIN_MEDIUM),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MARGIN_SMALL),
-                ),
-                label: Container(
-                  width: 20,
-                  height: 35,
-                  child: TextField(
-                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
-                    controller: _otpController5,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(
-                          1), //n is maximum number of characters you want in textfield
-                    ],
-                    style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      //contentPadding: EdgeInsets.symmetric(vertical: -1),
+                  label: Container(
+                    width: 20,
+                    height: 35,
+                    child: TextField(
+                      cursorHeight: MARGIN_lLARGE,
+                      onChanged: (_)=> FocusScope.of(context).nextFocus(),
+                      controller: _otpController5,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(
+                            1), //n is maximum number of characters you want in textfield
+                      ],
+                      style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
+                      textAlign: TextAlign.center,
+                      decoration: const InputDecoration(
+                        //contentPadding: EdgeInsets.symmetric(vertical: -1),
 
-                      filled: false,
-                      hintStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: TEXT_REGULAR_2X,
-                        color: Colors.black,
+                        filled: false,
+                        hintStyle: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: TEXT_REGULAR_2X,
+                          color: Colors.black,
+                        ),
+                        border: InputBorder.none,
                       ),
-                      border: InputBorder.none,
                     ),
+                  )),
+              const SizedBox(width: MARGIN_MEDIUM),
+              Chip(
+                  padding: const EdgeInsets.all(MARGIN_MEDIUM),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MARGIN_SMALL),
                   ),
-                )),
-            const SizedBox(width: MARGIN_MEDIUM),
-            Chip(
-                padding: const EdgeInsets.all(MARGIN_MEDIUM),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MARGIN_SMALL),
-                ),
-                label: Container(
-                  width: 20,
-                  height: 35,
-                  child: TextField(
-                    onChanged: (_)=> FocusScope.of(context).nextFocus(),
-                    controller: _otpController6,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(
-                          1), //n is maximum number of characters you want in textfield
-                    ],
-                    style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      //contentPadding: EdgeInsets.symmetric(vertical: -1),
+                  label: Container(
+                    width: 20,
+                    height: 35,
+                    child: TextField(
+                      cursorHeight: MARGIN_lLARGE,
+                      onChanged: (_)=> FocusScope.of(context).nextFocus(),
+                      controller: _otpController6,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(
+                            1), //n is maximum number of characters you want in textfield
+                      ],
+                      style: const TextStyle(color: OTP_CODE_TEXT_COLOR),
+                      textAlign: TextAlign.center,
+                      decoration: const InputDecoration(
+                        //contentPadding: EdgeInsets.symmetric(vertical: -1),
 
-                      filled: false,
-                      hintStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: TEXT_REGULAR_2X,
-                        color: Colors.black,
+                        filled: false,
+                        hintStyle: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: TEXT_REGULAR_2X,
+                          color: Colors.black,
+                        ),
+                        border: InputBorder.none,
                       ),
-                      border: InputBorder.none,
                     ),
-                  ),
-                )),
-          ],
+                  )),
+            ],
+          ),
         ),
         const SizedBox(height: MARGIN_XXLARGE),
         Align(
@@ -400,8 +416,10 @@ class _OTPCodeSectionViewState extends State<OTPCodeSectionView> {
           setState(() {
             otp =
                 "${_otpController1.text}${_otpController2.text}${_otpController3.text}${_otpController4.text}${_otpController5.text}${_otpController6.text}";
+              widget.onPressedConfirm(otp);
+
           });
-          widget.onPressedConfirm(otp);
+
         }),
       ],
     );

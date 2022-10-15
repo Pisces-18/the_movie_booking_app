@@ -24,7 +24,7 @@ class MoviePage extends StatefulWidget {
 }
 
 class _MoviePageState extends State<MoviePage> {
-  DataModel dDataModel=DataModelImpl();
+  DataModel mMovieModel=DataModelImpl();
 
   List<MovieVO>? mNowShowingMovieList;
   List<MovieVO>? mComingSoonMovieList;
@@ -34,17 +34,28 @@ class _MoviePageState extends State<MoviePage> {
   void initState(){
     super.initState();
 
-    ///Get Banners
-    dDataModel.getBanners()?.then((banners){
+    ///Get Banners Network
+    mMovieModel.getBanners()?.then((banners){
       setState((){
         bannerList=banners;
+        //debugPrint(bannerList[0].title.toString())
       });
     }).catchError((error) {
       debugPrint(error.toString());
     });
 
-    ///NowShowingMovies
-    dDataModel.getNowPlayingMovies(1)?.then((movieList) {
+    ///Get Banners Database
+    mMovieModel.getBannersFromDatabase()?.then((banners){
+      setState((){
+        bannerList=banners;
+       debugPrint("Banners from Database ==> ${bannerList?[0].title.toString()}");
+      });
+    }).catchError((error) {
+      debugPrint("Banners database Error ===> $error");
+    });
+
+    ///Now Showing Movies Network
+    mMovieModel.getNowPlayingMovies(1)?.then((movieList) {
       setState(() {
         mNowShowingMovieList = movieList;
         //debugPrint(mNowShowingMovieList?[0].productionCountries?[0].iso31661.toString());
@@ -53,8 +64,17 @@ class _MoviePageState extends State<MoviePage> {
       debugPrint(error.toString());
     });
 
-    ///ComingSoonMovies
-     dDataModel.getUpcomingMovies(1)?.then((movieList) {
+    ///Now Showing Movies Database
+    mMovieModel.getNowPlayingMoviesFromDatabase()?.then((movieList) {
+      setState((){
+        mNowShowingMovieList=movieList;
+      });
+    }).catchError((error){
+      debugPrint("Now Playing Database Error ===> $error");
+    });
+
+    ///Coming Soon Movies NetWork
+     mMovieModel.getUpcomingMovies(1)?.then((movieList) {
        setState((){
          mComingSoonMovieList=movieList;
         // debugPrint(mComingSoonMovieList?[0].title.toString());
@@ -63,7 +83,17 @@ class _MoviePageState extends State<MoviePage> {
     .catchError((error){
        debugPrint(error.toString());
      });
+
+    ///Coming Soon Movies Database
+    mMovieModel.getUpComingMoviesFromDatabase()?.then((movieList) {
+      setState((){
+        mComingSoonMovieList=movieList;
+      });
+    }).catchError((error){
+      debugPrint("Coming Soon Database Error ===> $error");
+    });
   }
+
 
   onTapSearch() => Navigator.push(
         context,

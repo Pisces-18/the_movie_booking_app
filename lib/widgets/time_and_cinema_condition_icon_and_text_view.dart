@@ -20,7 +20,7 @@ class _TimeAndCinemaConditionViewState
   void initState(){
     super.initState();
     textColor="0XFF${(widget.Color).substring(1,7)}";
-    debugPrint(textColor);
+    // debugPrint(textColor);
   }
   Widget build(BuildContext context) {
     return Row(

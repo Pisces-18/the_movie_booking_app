@@ -1,5 +1,6 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
+import 'package:the_movie_booking_app/data/vos/cinema_time_slots_status_vo.dart';
 import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
 import '../data/vos/cinema_and_show_time_slots_vo.dart';
 import '../data/vos/cinema_vo.dart';
@@ -16,11 +17,11 @@ class CinemaExpansionView extends StatefulWidget {
   //final List<String> cinemaList;
   // final int index;
   final Function(TimeSlotVO?) onTapTime;
-  final Function(String,CinemaVO?) onTapSeeDetails;
+  final Function(String,int) onTapSeeDetails;
   final String location;
   final List<TimeSlotVO>? cinemaTimeSlots;
   final CinemaVO? cinema;
-  final List<dynamic>? configList;
+  final List<CinemaTimeSlotsStatusVO>? configList;
   CinemaExpansionView(this.onTapSeeDetails, this.onTapTime,
       this.cinemaTimeSlots, this.location,this.cinema,this.configList);
 
@@ -115,7 +116,7 @@ class ExpandablePanelHeaderSectionView extends StatefulWidget {
   }) : super(key: key);
 
   final CinemaVO? cinema;
-  final Function(String,CinemaVO?) onTapSeeDetails;
+  final Function(String,int) onTapSeeDetails;
   final String location;
 
   @override
@@ -133,9 +134,9 @@ class _ExpandablePanelHeaderSectionViewState
           padding: const EdgeInsets.only(
               top: MARGIN_MEDIUM_3, left: MARGIN_MEDIUM_2, right: MARGIN_MEDIUM_2),
           child: CinemaNameAndDetailsTextView(widget.cinema?.name?? "",
-              () {
+                  () {
                 setState((){
-                  widget.onTapSeeDetails(widget.location, widget.cinema);
+                  widget.onTapSeeDetails(widget.location, widget.cinema?.id?? 0);
                 });
               }),
         ),

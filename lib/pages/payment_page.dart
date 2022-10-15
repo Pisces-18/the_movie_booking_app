@@ -4,10 +4,8 @@ import 'package:the_movie_booking_app/data/models/data_model.dart';
 import 'package:the_movie_booking_app/data/models/data_model_impl.dart';
 import 'package:the_movie_booking_app/data/vos/snack_vo.dart';
 import 'package:the_movie_booking_app/data/vos/time_slot_vo.dart';
-import 'package:the_movie_booking_app/pages/ticket_confirmation_splash_screen_page.dart';
-import 'package:toast/toast.dart';
-import '../data/vos/checkout_snack_vo.dart';
-import '../data/vos/cinema_and_show_time_slots_vo.dart';
+import 'package:the_movie_booking_app/pages/ticket_confirmation_page.dart';
+import '../data/vos/check_out_vo.dart';
 import '../data/vos/cinema_vo.dart';
 import '../data/vos/payment_vo.dart';
 import '../resources/colors.dart';
@@ -39,26 +37,50 @@ class _PaymentPageState extends State<PaymentPage> {
 
   List<PaymentVO>? paymentList;
   List<SnackVO>? snackVO;
+  CheckOutVO? checkOutData;
+  String? token;
   String? userName;
+
   @override
   void initState() {
     super.initState();
 
-    for (int i = 0; i < (widget.snackList?.length ?? 0); i++) {
-      snackVO?[i].id = (widget.snackList?[i].id);
-      snackVO?[i].quantity = (widget.snackList?[i].quantity);
-    }
+    // for (int i = 0; i < (widget.snackList?.length ?? 0); i++) {
+    //   snackVO?[i].id = (widget.snackList?[i].id);
+    //   snackVO?[i].quantity = (widget.snackList?[i].quantity);
+    // }
 
-    ///Get Payment List
-    dDataModel.getPaymentTypes()?.then((payment) {
-      setState(() {
-        paymentList = payment;
-        debugPrint(paymentList?[0].title.toString());
+    ///Get User token from database
+    dDataModel.signInWithPhoneDatabase()?.then((user){
+      setState((){
+        ///Get Payment Types from Network
+        dDataModel.getPaymentTypes(user.token?? "")?.then((payment) {
+          setState(() {
+            paymentList = payment;
+            //debugPrint(paymentList?[0].title.toString());
+          });
+        }).catchError((error) {
+          debugPrint(error.toString());
+        });
+        token=user.token;
+        debugPrint("Location Token==>$token");
+      });
+    }).catchError((error){
+      debugPrint("User Database Error ===> $error");
+    });
+
+
+   // debugPrint(widget.totalAmount.toString());
+
+    ///Get Payment Types from Database
+    dDataModel.getPaymentTypesFromDatabase()?.then((payments){
+      setState((){
+        paymentList=payments;
+        debugPrint("Payment Types from Database==> ${paymentList?[0].title}");
       });
     }).catchError((error) {
-      debugPrint(error.toString());
+      debugPrint("Payment Types Database error==> $error");
     });
-    debugPrint(widget.totalAmount.toString());
   }
 
   final myController = TextEditingController();
@@ -153,30 +175,17 @@ class _PaymentPageState extends State<PaymentPage> {
                   paymentList: paymentList ?? [],
                   onTapPayment: (location, paymentId) {
 
+                    //debugPrint(widget.date);
                     userName = myController.text;
                     if(userName==""){
                       _showToast("Please Enter Your Name");
                     }else{
-                      widget.snackList=[SnackVO(0, "", "", 0, 0, "", 0, 0, 0)];
-                      dDataModel.postCheckout(
-                          userName ?? "",
-                          widget.cinemaDayTimeSlot?.cinemaDayTimeslotsId ?? 0,
-                          "G-3",
-                          widget.date,
-                          widget.movieId,
-                          paymentId,
-                          widget.snackList ?? [])?.then((response) {
-                        if(response.code==200){
-                          debugPrint("Code Success!");
-                          _navigateToTicketConfirmationSplashScreenPage(
-                              context, location);
-                        }else if(response.code==400){
-                          _showToast("Your Seats are not available!");
-                        }
-                      }).catchError((error){
-                        debugPrint("Check Out Error===>$error");
-
-                      });
+                      if(widget.snackList!=null){
+                        _checkOut(paymentId);
+                      }else{
+                        widget.snackList=[SnackVO(0, "", "", 0, 0, "", 0, 0, 0)];
+                        _checkOut(paymentId);
+                      }
                     }
                   },
                   location: widget.location,
@@ -190,14 +199,36 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  _checkOut(int paymentId){
+    dDataModel.postCheckout(
+        token?? "",
+        userName ?? "",
+        widget.cinemaDayTimeSlot?.cinemaDayTimeslotsId ?? 0,
+        "G-12",
+        widget.date,
+        widget.movieId,
+        paymentId,
+        widget.snackList ?? [])?.then((response) {
+      if(response.code==200){
+        //debugPrint("Code Success!");
+        checkOutData=response.data;
+        _navigateToTicketConfirmationPage(
+            context, widget.location,checkOutData);
+      }else if(response.code==400){
+        _showToast("Your Seats are not available!");
+      }
+    }).catchError((error){
+      debugPrint("Check Out Error===>$error");
+    });
+  }
 
-  void _navigateToTicketConfirmationSplashScreenPage(
-          BuildContext context, location) =>
+  void _navigateToTicketConfirmationPage(
+          BuildContext context, location,CheckOutVO? checkoutData) =>
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => TicketConfirmationSplashScreenPage(
-              cinema: widget.cinema, location: location),
+          builder: (context) => TicketConfirmationPage(
+               location,widget.cinema,checkoutData ),
         ),
       );
 }

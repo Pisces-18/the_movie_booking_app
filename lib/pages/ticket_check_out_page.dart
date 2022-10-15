@@ -49,7 +49,7 @@ class _TicketCheckOutPageState extends State<TicketCheckOutPage> {
     dDataModel.getMovieDetails(widget.movieId)?.then((movie) {
       setState(() {
         mMovie = movie;
-        debugPrint(mMovie?.title.toString());
+       // debugPrint(mMovie?.title.toString());
       });
     }).catchError((error) {
       debugPrint(error.toString());

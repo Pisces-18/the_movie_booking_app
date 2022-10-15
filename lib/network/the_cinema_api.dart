@@ -15,6 +15,8 @@ import 'package:the_movie_booking_app/network/responses/get_seating_plan_by_show
 import 'package:the_movie_booking_app/network/responses/get_snack_category_response.dart';
 import 'package:the_movie_booking_app/network/responses/get_snacks_response.dart';
 import 'package:the_movie_booking_app/network/responses/user_response.dart';
+import '../data/vos/cinema_and_show_time_by_date_vo.dart';
+import '../data/vos/user_data_vo.dart';
 import '../data/vos/user_vo.dart';
 import 'api_constants.dart';
 
@@ -29,13 +31,13 @@ abstract class TheCinemaApi{
       );
 
   @POST(ENDPOINT_SIGN_IN_WITH_PHONE)
-  Future<UserResponse> signInWithPhone(
+  Future<UserVO> signInWithPhone(
       @Field(PARAM_POHONE_KEY) String phone,
       @Field(PARAM_OTP_KEY) String otp
       );///response
 
   @POST(ENDPONIT_SIGN_IN_WITH_GOOGLE)
-  Future<UserResponse> signInWithGoogle(
+  Future<UserVO> signInWithGoogle(
       @Field(PARAM_ACCESS_TOKEN) String accessToken,
       @Field(PARAM_NAME) String name,
       );

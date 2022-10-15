@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/http.dart';
+import 'package:the_movie_booking_app/data/vos/credit_vo.dart';
 import 'package:the_movie_booking_app/network/api_constants.dart';
 import 'package:the_movie_booking_app/network/responses/get_cinema_and_show_time_by_date_response.dart';
 import 'package:the_movie_booking_app/network/responses/get_credits_by_movie_response.dart';
@@ -36,7 +37,7 @@ abstract class TheMovieApi{
       );
 
   @GET("$ENDPOINT_GET_CREDITS_BY_MOVIE/{movie_Id}/credits")
-  Future<GetCreditsByMovieResponse> getCreditsByMovie(
+  Future<CreditVO> getCreditsByMovie(
       @Path("movie_Id") String movieId,
       @Query(PARAM_API_KEY) String apiKey,
       @Query(PARAM_LANGUAGE) String language,

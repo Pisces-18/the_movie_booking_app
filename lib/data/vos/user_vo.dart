@@ -1,29 +1,31 @@
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:the_movie_booking_app/data/vos/value_vo.dart';
+import 'package:the_movie_booking_app/data/vos/user_data_vo.dart';
+
+import '../../persistence/hive_constants.dart';
+
 
 part 'user_vo.g.dart';
 @JsonSerializable()
+@HiveType(typeId: HIVE_TYPE_ID_USER_VO,adapterName: "UserVOAdapter")
 class UserVO{
-  @JsonKey(name: "id")
-  int? id;
+  @HiveField(0)
+  @JsonKey(name: "code")
+  int? code;
 
-  @JsonKey(name: "name")
-  String? name;
+  @JsonKey(name: "message")
+  @HiveField(1)
+  String? message;
 
-  @JsonKey(name: "email")
-  String? email;
+  @JsonKey(name: "data")
+  @HiveField(2)
+  UserDataVO data;
 
-  @JsonKey(name: "phone")
-  String? phone;
+  @JsonKey(name : "token")
+  @HiveField(3)
+  String? token;
 
-  @JsonKey(name: "total_expense")
-  int? totalExpense;
-
-  @JsonKey(name: "profile_image")
-  String? profileImage;
-
-  UserVO(this.id, this.name, this.email, this.phone, this.totalExpense,
-      this.profileImage);
+  UserVO(this.code, this.message, this.data, this.token);
 
   factory UserVO.fromJson(Map<String,dynamic> json)=>_$UserVOFromJson(json);
 
