@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../persistence/hive_constants.dart';
+import 'city_vo.dart';
 
 
 part 'user_data_vo.g.dart';
@@ -36,8 +37,11 @@ class UserDataVO{
   @HiveField(6)
   String? token;
 
+  @HiveField(7)
+  CityVO? cityOfUser;
+
   UserDataVO(this.id, this.name, this.email, this.phone, this.totalExpense,
-      this.profileImage,this.token);
+      this.profileImage,this.token,this.cityOfUser);
 
   factory UserDataVO.fromJson(Map<String,dynamic> json)=>_$UserDataVOFromJson(json);
 

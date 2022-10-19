@@ -38,6 +38,7 @@ class _HomePageState extends State<HomePage> {
          debugPrint("Database Token ==> ${user.token}");
          debugPrint("Database ID ==> ${user.id}");
          debugPrint("Users ===> $user");
+         debugPrint("City From Database==>${user.cityOfUser}");
          dDataModel.getSnackCategory(user.token?? "");
        });
       }).catchError((error){

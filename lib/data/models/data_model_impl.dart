@@ -191,9 +191,10 @@ class DataModelImpl extends DataModel {
 
   @override
   void getSnackCategory(String token) {
-    mDataAgent.getSnackCategory(token)?.then((snackCategories) {
+    mDataAgent.getSnackCategory(token)?.then((snackCategories) async{
       //mSnackCategoryRepository = snackCategories;
       cSnackCategoryDao.saveAllSnackCategories(snackCategories);
+      return Future.value(snackCategories);
       //debugPrint("Snack ${mSnackCategoryRepository?[0].title}");
     }).catchError((error) {
       debugPrint("Snack Category Error====>$error");
@@ -207,18 +208,18 @@ class DataModelImpl extends DataModel {
       // test=configList;
       // mConfigList = configList;
       List timeSlotsStatusList = configList[1].value;
-      List<CinemaTimeSlotsStatusVO> cinemaCondition = (timeSlotsStatusList)
+      List<CinemaTimeSlotsStatusVO> timeSlotStatus = (timeSlotsStatusList)
           .map((v) => CinemaTimeSlotsStatusVO.fromJson(v))
           .toList();
-      cCinemaConditionDao.saveAllCinemaTimeSlotsStatus(cinemaCondition);
+      cCinemaConditionDao.saveAllCinemaTimeSlotsStatus(timeSlotStatus);
     });
   }
 
   @override
   void getCinemas() {
-    mDataAgent.getCinemas()?.then((cinemaList) {
+    mDataAgent.getCinemas()?.then((cinemaList) async{
       cCinemaDao.saveAllCinemas(cinemaList);
-      //
+      return Future.value(cinemaList);
     }).catchError((error) {
       debugPrint("$error");
     });
@@ -261,7 +262,15 @@ class DataModelImpl extends DataModel {
 
   @override
   Future<CityResponse>? setCity(String token, int cityId) {
-    return mDataAgent.setCity(token, cityId);
+
+      UserDataVO? user;
+      user?.cityOfUser=cCityDao.getSingleCity(cityId);
+      String c=user?.cityOfUser?.name?? "";
+      debugPrint("City Database===>$c");
+      cUserDao.saveUser(user!);
+     // return Future.value(city);
+
+     return mDataAgent.setCity(token, cityId);
   }
 
   @override
@@ -323,7 +332,7 @@ class DataModelImpl extends DataModel {
   }
 
   @override
-  Future<CinemaVO>? getCinemaDetailsFromDatabase(int cinemaId) async {
+  Future<CinemaVO>? getCinemaDetailsFromDatabase(int cinemaId)async{
     return Future.value(cCinemaDao.getSingleCinema(cinemaId));
   }
 

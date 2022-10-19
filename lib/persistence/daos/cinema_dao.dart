@@ -18,6 +18,10 @@ class CinemaDao{
     await getCinemaBox().putAll(cinemaMap);
   }
 
+  void saveSingleCinema(CinemaVO cinema)async{
+    return getCinemaBox().put(cinema.id, cinema);
+  }
+
   List<CinemaVO> getAllCinema(){
    List<CinemaVO> cinemaList= getCinemaBox().values.toList();
    cinemaList.forEach((element) {
@@ -28,6 +32,8 @@ class CinemaDao{
   }
 
   CinemaVO? getSingleCinema(int cinemaId){
+    CinemaVO? c=getCinemaBox().get(cinemaId);
+    debugPrint(c?.promoVdoUrl);
     return getCinemaBox().get(cinemaId);
   }
 

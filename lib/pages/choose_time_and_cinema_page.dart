@@ -185,7 +185,6 @@ class _ChooseTimeAndCinemaPageState extends State<ChooseTimeAndCinemaPage> {
               MovieTypeSectionView(movieTypeList: movieTypeList),
               const SizedBox(height: MARGIN_XxLARGE),
               TimeAndCinemaConditionSectionView(cinemaTimeSlotsStatus),
-
               (cinemaList != null)
                   ? ListView.builder(
                       physics: const NeverScrollableScrollPhysics(),

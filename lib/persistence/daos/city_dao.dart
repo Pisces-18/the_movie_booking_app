@@ -31,6 +31,7 @@ class CityDao {
   }
 
   CityVO? getSingleCity(int cityId){
+    debugPrint("Single city==>${getCityBox().get(cityId)?.name}");
     return getCityBox().get(cityId);
   }
 
